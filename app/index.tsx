@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect } from 'react';
-import { KeyboardAvoidingView, ScrollView, View } from 'react-native';
+import { ScrollView, Image } from 'react-native';
 import { Button } from '~/components/ui/button';
 import { Text } from '~/components/ui/text';
 import { H1, P } from '~/components/ui/typography';
@@ -61,29 +61,37 @@ export default function Auth() {
 
   return (
     <ViewGradient style={{ flex: 1 }}>
-      <ScrollView contentContainerClassName="mx-3 flex-1 mt-40">
-        <KeyboardAvoidingView className="gap-2">
-          <H1 className="mb-4  text-center">Hello User, Welcome to Stylette</H1>
-          <P className="mb-2 text-center">Your AI style assistant</P>
-          <P className="mb-6 text-center">Sign in with us to get started!</P>
+      <ScrollView contentContainerClassName="mx-3 flex-1 gap-2  mt-40">
+        <H1 className="mb-4  text-center">Hello User, Welcome to Stylette</H1>
+        <P className="mb-2 text-center">Your AI style assistant</P>
+        <P className="mb-6 text-center">Sign in with us to get started!</P>
 
-          <View>
-            <Button onPress={signInWithEmail}>
-              <Text>Sign in with email</Text>
-            </Button>
-          </View>
+        <Button onPress={signInWithEmail}>
+          <Text>Sign in with email</Text>
+        </Button>
 
-          <View>
-            <Button onPress={onPress}>
-              <Text>Sign in with Google</Text>
-            </Button>
-          </View>
-          <View>
-            <Button onPress={onPressApple}>
-              <Text>Sign in with Apple</Text>
-            </Button>
-          </View>
-        </KeyboardAvoidingView>
+        <Button
+          onPress={onPress}
+          className="flex-row items-center justify-center bg-white border border-gray-200"
+          style={{ minHeight: 48 }}>
+          <Image
+            source={require('~/assets/google.webp')}
+            style={{ width: 22, height: 22, marginRight: 10 }}
+          />
+          <Text className="text-black font-medium">Sign in with Google</Text>
+        </Button>
+
+        <Button
+          onPress={onPressApple}
+          className="flex-row items-center justify-center bg-black"
+          style={{ minHeight: 48 }}>
+          <Image
+            source={require('~/assets/apple.png')}
+            tintColor={'white'}
+            style={{ width: 45, height: 45, marginRight: 0 }}
+          />
+          <Text className="text-white font-medium">Sign in with Apple</Text>
+        </Button>
       </ScrollView>
     </ViewGradient>
   );

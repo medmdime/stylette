@@ -8,6 +8,7 @@ import { useColorScheme } from '~/lib/useColorScheme';
 import { ClerkProvider, useAuth } from '@clerk/clerk-expo';
 import { tokenCache } from '@clerk/clerk-expo/token-cache';
 import { SplashScreenController } from '~/controller/splash';
+import { PortalHost } from '@rn-primitives/portal';
 
 const LIGHT_THEME: Theme = {
   ...DefaultTheme,
@@ -26,8 +27,8 @@ export default function RootLayout() {
       <ThemeProvider value={isDarkColorScheme ? DARK_THEME : LIGHT_THEME}>
         <SplashScreenController />
         <StatusBar style={isDarkColorScheme ? 'light' : 'dark'} />
-
         <RootNavigator />
+        <PortalHost />
       </ThemeProvider>
     </ClerkProvider>
   );
@@ -54,6 +55,9 @@ function RootNavigator() {
       </Stack.Protected>
       <Stack.Protected guard={!isSignedIn}>
         <Stack.Screen name="sign-up" />
+      </Stack.Protected>
+      <Stack.Protected guard={!isSignedIn}>
+        <Stack.Screen name="forget-password" />
       </Stack.Protected>
     </Stack>
   );
