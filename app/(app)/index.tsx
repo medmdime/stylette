@@ -5,6 +5,7 @@ import { Button } from '~/components/ui/button';
 import { H1, P } from '~/components/ui/typography';
 import { Text } from '~/components/ui/text';
 import * as Linking from 'expo-linking';
+import { router } from 'expo-router';
 
 export default function Welcome() {
   const { signOut } = useClerk();
@@ -21,6 +22,13 @@ export default function Welcome() {
       </P>
       <Button variant="destructive" onPress={handleSignOut}>
         <Text> Sign out </Text>
+      </Button>
+      <Button
+        variant="outline"
+        onPress={() => {
+          router.push('/(app)/camera');
+        }}>
+        <Text> camera </Text>
       </Button>
     </View>
   );

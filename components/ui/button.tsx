@@ -1,8 +1,8 @@
 import { cva, type VariantProps } from 'class-variance-authority';
 import * as React from 'react';
-import { Pressable } from 'react-native';
+import { ActivityIndicator, Pressable } from 'react-native';
 import { cn } from '~/lib/utils';
-import { TextClassContext } from '~/components/ui/text';
+import { Text, TextClassContext } from '~/components/ui/text';
 
 const buttonVariants = cva(
   'group flex items-center justify-center rounded-md web:ring-offset-background web:transition-colors web:focus-visible:outline-none web:focus-visible:ring-2 web:focus-visible:ring-ring web:focus-visible:ring-offset-2',
@@ -62,17 +62,21 @@ type ButtonProps = React.ComponentProps<typeof Pressable> & VariantProps<typeof 
 function Button({ ref, className, variant, size, ...props }: ButtonProps) {
   return (
     <TextClassContext.Provider
-      value={buttonTextVariants({ variant, size, className: 'web:pointer-events-none' })}
-    >
+      value={buttonTextVariants({ variant, size, className: 'web:pointer-events-none' })}>
       <Pressable
         className={cn(
           props.disabled && 'opacity-50 web:pointer-events-none',
           buttonVariants({ variant, size, className })
         )}
         ref={ref}
-        role='button'
-        {...props}
-      />
+        role="button"
+        {...props}>
+        {props.disabled ? (
+          <ActivityIndicator className="font-medium text-gray-500" />
+        ) : (
+          props.children
+        )}
+      </Pressable>
     </TextClassContext.Provider>
   );
 }

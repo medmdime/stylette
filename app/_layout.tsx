@@ -9,6 +9,7 @@ import { ClerkProvider, useAuth } from '@clerk/clerk-expo';
 import { tokenCache } from '@clerk/clerk-expo/token-cache';
 import { SplashScreenController } from '~/controller/splash';
 import { PortalHost } from '@rn-primitives/portal';
+import { ActivityIndicator } from 'react-native';
 
 const LIGHT_THEME: Theme = {
   ...DefaultTheme,
@@ -25,7 +26,6 @@ export default function RootLayout() {
   return (
     <ClerkProvider tokenCache={tokenCache}>
       <ThemeProvider value={isDarkColorScheme ? DARK_THEME : LIGHT_THEME}>
-        <SplashScreenController />
         <StatusBar style={isDarkColorScheme ? 'light' : 'dark'} />
         <RootNavigator />
         <PortalHost />
@@ -35,7 +35,12 @@ export default function RootLayout() {
 }
 
 function RootNavigator() {
-  const { isSignedIn } = useAuth();
+  const { isSignedIn, isLoaded } = useAuth();
+
+  if (!isLoaded) {
+    return <ActivityIndicator color={'gray'} />;
+  }
+
   return (
     <Stack
       screenOptions={{

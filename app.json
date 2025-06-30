@@ -4,6 +4,7 @@
     "slug": "stylette",
     "version": "1.0.0",
     "scheme": "stylette",
+
     "web": {
       "bundler": "metro",
       "output": "static",
@@ -15,6 +16,15 @@
         "expo-dev-launcher",
         {
           "launchMode": "most-recent"
+        }
+      ],
+      [
+        "react-native-vision-camera",
+        {
+          "cameraPermissionText": "$(PRODUCT_NAME) needs access to your Camera to take pictures of your outfit so it can use that image to give you an outfit review.",
+
+          "enableMicrophonePermission": false,
+          "microphonePermissionText": "$(PRODUCT_NAME) needs access to your Microphone."
         }
       ],
       "expo-web-browser"
@@ -34,7 +44,10 @@
     "assetBundlePatterns": ["**/*"],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.ubod.stylette"
+      "bundleIdentifier": "com.ubod.stylette",
+      "infoPlist": {
+        "NSCameraUsageDescription": "your outfit so it can use that image to give you an outfit review."
+      }
     },
     "android": {
       "adaptiveIcon": {

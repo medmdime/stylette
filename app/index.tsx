@@ -20,11 +20,13 @@ export const useWarmUpBrowser = () => {
 
 export default function Auth() {
   const router = useRouter();
-
+  useWarmUpBrowser();
   const { startSSOFlow } = useSSO();
+  const [isLoading, setIsLoading] = React.useState(false);
 
   const onPress = useCallback(async () => {
     try {
+      setIsLoading(true);
       const { createdSessionId, setActive } = await startSSOFlow({
         strategy: 'oauth_google',
         redirectUrl: AuthSession.makeRedirectUri(),
@@ -32,15 +34,18 @@ export default function Auth() {
 
       if (createdSessionId) {
         setActive!({ session: createdSessionId });
-        router.replace('/');
+        router.replace('/(app)');
       }
     } catch (err) {
       console.error(JSON.stringify(err, null, 2));
+    } finally {
+      setIsLoading(false);
     }
   }, []);
 
   const onPressApple = useCallback(async () => {
     try {
+      setIsLoading(true);
       const { createdSessionId, setActive } = await startSSOFlow({
         strategy: 'oauth_apple',
         redirectUrl: AuthSession.makeRedirectUri(),
@@ -48,10 +53,12 @@ export default function Auth() {
 
       if (createdSessionId) {
         setActive!({ session: createdSessionId });
-        router.replace('/');
+        router.replace('/(app)');
       }
     } catch (err) {
       console.error(JSON.stringify(err, null, 2));
+    } finally {
+      setIsLoading(false);
     }
   }, []);
 
@@ -66,23 +73,25 @@ export default function Auth() {
         <P className="mb-2 text-center">Your AI style assistant</P>
         <P className="mb-6 text-center">Sign in with us to get started!</P>
 
-        <Button onPress={signInWithEmail}>
+        <Button disabled={isLoading} onPress={signInWithEmail}>
           <Text>Sign in with email</Text>
         </Button>
 
         <Button
           onPress={onPress}
-          className="flex-row items-center justify-center bg-white border border-gray-200"
+          disabled={isLoading}
+          className="flex-row items-center justify-center border border-gray-200 bg-white"
           style={{ minHeight: 48 }}>
           <Image
             source={require('~/assets/google.webp')}
             style={{ width: 22, height: 22, marginRight: 10 }}
           />
-          <Text className="text-black font-medium">Sign in with Google</Text>
+          <Text className="font-medium text-black">Sign in with Google</Text>
         </Button>
 
         <Button
           onPress={onPressApple}
+          disabled={isLoading}
           className="flex-row items-center justify-center bg-black"
           style={{ minHeight: 48 }}>
           <Image
@@ -90,7 +99,7 @@ export default function Auth() {
             tintColor={'white'}
             style={{ width: 45, height: 45, marginRight: 0 }}
           />
-          <Text className="text-white font-medium">Sign in with Apple</Text>
+          <Text className="font-medium text-white">Sign in with Apple</Text>
         </Button>
       </ScrollView>
     </ViewGradient>

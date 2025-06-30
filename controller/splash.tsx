@@ -5,7 +5,9 @@ export function SplashScreenController() {
   const { isLoaded } = useAuth();
 
   if (isLoaded) {
-    SplashScreen.hideAsync();
+    setTimeout(function () {
+      SplashScreen.hideAsync();
+    }, 3000);
   }
 
   return null;
