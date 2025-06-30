@@ -5,6 +5,7 @@ import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
 import { buttonTextVariants, buttonVariants } from '~/components/ui/button';
 import { cn } from '~/lib/utils';
 import { TextClassContext } from '~/components/ui/text';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const AlertDialog = AlertDialogPrimitive.Root;
 
@@ -22,7 +23,7 @@ function AlertDialogOverlayWeb({
   return (
     <AlertDialogPrimitive.Overlay
       className={cn(
-        'z-50 bg-black/80 flex justify-center items-center p-2 absolute top-0 right-0 bottom-0 left-0',
+        'absolute bottom-0 left-0 right-0 top-0 z-50 flex items-center justify-center bg-black/80 p-2',
         open ? 'web:animate-in web:fade-in-0' : 'web:animate-out web:fade-out-0',
         className
       )}
@@ -38,16 +39,19 @@ function AlertDialogOverlayNative({
 }: AlertDialogPrimitive.OverlayProps & {
   ref?: React.RefObject<AlertDialogPrimitive.OverlayRef>;
 }) {
+  const insets = useSafeAreaInsets();
   return (
     <AlertDialogPrimitive.Overlay
       className={cn(
-        'z-50 absolute top-0 right-0 bottom-0 left-0 bg-black/80 flex justify-center items-center p-2',
+        'absolute bottom-0 left-0 right-0 top-0 z-50 flex items-center justify-center bg-black/80 p-2',
         className
       )}
       {...props}
-      asChild
-    >
-      <Animated.View entering={FadeIn.duration(150)} exiting={FadeOut.duration(150)}>
+      asChild>
+      <Animated.View
+        style={{ marginTop: insets.top, marginBottom: insets.bottom }}
+        entering={FadeIn.duration(150)}
+        exiting={FadeOut.duration(150)}>
         {children}
       </Animated.View>
     </AlertDialogPrimitive.Overlay>
@@ -74,7 +78,7 @@ function AlertDialogContent({
       <AlertDialogOverlay>
         <AlertDialogPrimitive.Content
           className={cn(
-            'z-50 max-w-lg gap-4 border border-border bg-background p-6 shadow-lg shadow-foreground/10 web:duration-200 rounded-lg',
+            'z-50 max-w-lg gap-4 rounded-lg border border-border bg-background p-6 shadow-lg shadow-foreground/10 web:duration-200',
             open
               ? 'web:animate-in web:fade-in-0 web:zoom-in-95'
               : 'web:animate-out web:fade-out-0 web:zoom-out-95',
@@ -94,7 +98,7 @@ function AlertDialogHeader({ className, ...props }: ViewProps) {
 function AlertDialogFooter({ className, ...props }: ViewProps) {
   return (
     <View
-      className={cn('flex flex-col-reverse sm:flex-row sm:justify-end gap-2', className)}
+      className={cn('flex flex-col-reverse gap-2 sm:flex-row sm:justify-end', className)}
       {...props}
     />
   );
@@ -108,7 +112,7 @@ function AlertDialogTitle({
 }) {
   return (
     <AlertDialogPrimitive.Title
-      className={cn('text-lg native:text-xl text-foreground font-semibold', className)}
+      className={cn('native:text-xl text-lg font-semibold text-foreground', className)}
       {...props}
     />
   );
@@ -122,7 +126,7 @@ function AlertDialogDescription({
 }) {
   return (
     <AlertDialogPrimitive.Description
-      className={cn('text-sm native:text-base text-muted-foreground', className)}
+      className={cn('native:text-base text-sm text-muted-foreground', className)}
       {...props}
     />
   );

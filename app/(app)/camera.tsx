@@ -1,134 +1,227 @@
-// app/camera.tsx
-
-import React, { useRef, useState, useEffect } from 'react';
-import { View, StyleSheet, ActivityIndicator, Alert } from 'react-native';
+import React, { useRef, useState, useEffect, useCallback } from 'react';
+import { View, ActivityIndicator, Alert, TouchableOpacity, Image } from 'react-native';
 import { Camera, useCameraDevice, useCameraPermission } from 'react-native-vision-camera';
-import { useAuth } from '@clerk/clerk-expo';
+import { useAuth, useUser } from '@clerk/clerk-expo';
 import * as FileSystem from 'expo-file-system';
 import { decode } from 'base64-arraybuffer';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
+import { X, Zap, Send, RefreshCw } from 'lucide-react-native';
+import { GestureDetector, Gesture } from 'react-native-gesture-handler';
+import { runOnJS } from 'react-native-reanimated';
 
-import { Button } from '~/components/ui/button'; // Using your existing UI components
 import { Text } from '~/components/ui/text';
+import { ProfileAnalysisModal } from '~/components/ProfileAnalysisModal';
+import type { OutfitAnalysisResult } from '~/utils/types';
+import { useIsFocused } from '@react-navigation/native';
 import { useClient } from '~/utils/supabase';
-import { FunctionsHttpError } from '@supabase/supabase-js';
+import { useHeaderHeight } from '@react-navigation/elements';
+
+const MemoizedHeader = React.memo(
+  ({ onBack, onToggleFlash, onToggleCamera, flash, photoUri, topInset }: any) => (
+    <View className="absolute right-0 top-5 z-10 flex-row items-center justify-between px-6">
+      {!photoUri && (
+        <View className=" gap-4">
+          <TouchableOpacity onPress={onToggleFlash} className="rounded-full bg-black/50 p-2">
+            <Zap
+              size={28}
+              color={flash === 'on' ? '#facc15' : '#fff'}
+              fill={flash === 'on' ? '#facc15' : 'none'}
+            />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={onToggleCamera} className="rounded-full bg-black/50 p-2">
+            <RefreshCw size={28} color="#fff" />
+          </TouchableOpacity>
+        </View>
+      )}
+    </View>
+  )
+);
+
+const MemoizedCaptureButton = React.memo(({ onPress }: { onPress: () => void }) => (
+  <TouchableOpacity
+    onPress={onPress}
+    className="h-20 w-20 items-center justify-center rounded-full border-4 border-white/50 bg-white/30"
+  />
+));
+
+const MemoizedPreviewControls = React.memo(
+  ({ onRetake, onSend }: { onRetake: () => void; onSend: () => void }) => (
+    <View className="w-full max-w-xs flex-row items-center justify-around">
+      <TouchableOpacity
+        onPress={onRetake}
+        className="h-16 w-16 items-center justify-center rounded-full bg-white/30">
+        <X size={32} color="#fff" />
+      </TouchableOpacity>
+      <TouchableOpacity
+        onPress={onSend}
+        className="h-20 w-20 items-center justify-center rounded-full bg-primary">
+        <Send size={32} color="#fff" />
+      </TouchableOpacity>
+    </View>
+  )
+);
 
 export default function OutfitCameraScreen() {
-  const device = useCameraDevice('back');
-  const camera = useRef<Camera>(null);
   const { hasPermission, requestPermission } = useCameraPermission();
-  const { userId, sessionClaims } = useAuth();
+  const { userId } = useAuth();
+  const { user } = useUser();
+  const router = useRouter();
+  const insets = useSafeAreaInsets();
+  const isFocused = useIsFocused();
   const supabase = useClient();
+  const [cameraPosition, setCameraPosition] = useState<'back' | 'front'>('back');
+  const device = useCameraDevice(cameraPosition);
+  const camera = useRef<Camera>(null);
+
   const [isLoading, setIsLoading] = useState(false);
+  const [flash, setFlash] = useState<'on' | 'off'>('off');
+  const [photoUri, setPhotoUri] = useState<string | null>(null);
+  const [analysisResult, setAnalysisResult] = useState<OutfitAnalysisResult | null>(null);
+  const [showResultModal, setShowResultModal] = useState(false);
+
+  const handleRequestPermission = useCallback(() => {
+    requestPermission();
+  }, [requestPermission]);
 
   useEffect(() => {
     if (!hasPermission) {
-      requestPermission();
+      handleRequestPermission();
     }
-  }, [hasPermission]);
+  }, [hasPermission, handleRequestPermission]);
 
-  const handleTakePhoto = async () => {
-    if (!camera.current || !userId) {
-      Alert.alert('Error', 'Camera is not ready or user is not available.');
-      return;
-    }
-
-    setIsLoading(true);
-
+  const handleTakePhoto = useCallback(async () => {
+    if (!camera.current) return;
     try {
-      const photo = await camera.current.takePhoto();
-      const base64 = await FileSystem.readAsStringAsync(photo.path, {
+      const photo = await camera.current.takePhoto({ flash });
+      setPhotoUri(photo.path);
+    } catch (e: any) {
+      Alert.alert('Error', e.message);
+    }
+  }, [flash]);
+
+  const saveScan = useCallback(
+    async (result: any, imageUrl?: string) => {
+      if (!user) return;
+      await supabase
+        .from('scanned_items')
+        .insert([{ user_id: user.id, result, image_url: imageUrl }]);
+    },
+    [user]
+  );
+
+  const handleSend = useCallback(async () => {
+    if (!photoUri || !userId) return;
+    setIsLoading(true);
+    try {
+      const base64 = await FileSystem.readAsStringAsync(photoUri, {
         encoding: FileSystem.EncodingType.Base64,
       });
-
       const filePath = `${userId}/${new Date().toISOString()}.jpg`;
-      const { error: uploadError } = await supabase.storage
+      await supabase.storage
         .from('outfit-images')
         .upload(filePath, decode(base64), { contentType: 'image/jpeg' });
-
-      if (uploadError) throw uploadError;
-      console.log('Image uploaded successfully.');
-
-      const { data: signedUrlData, error: signedUrlError } = await supabase.storage
+      const { data: signedUrlData } = await supabase.storage
         .from('outfit-images')
-        .createSignedUrl(filePath, 60 * 60); // The URL will be valid for 60 minutes
+        .createSignedUrl(filePath, 300);
+      const imageUrl = signedUrlData?.signedUrl;
+      if (!imageUrl) throw new Error('Could not create a secure link for the image.');
 
-      if (signedUrlError) {
-        throw signedUrlError;
-      }
-      const imageUrl = signedUrlData.signedUrl;
-      if (!imageUrl) {
-        throw new Error('Could not get public URL for the uploaded image.');
-      }
-      console.log('Image URL:', imageUrl);
-
-      console.log('Invoking edge function...');
-      const { data: analysisData, error: functionError } = await supabase.functions.invoke(
-        'analyze-outfit',
-        {
-          body: { imageUrl },
-        }
-      );
-
-      console.log('Function response:', {
-        headers: {
-          Authorization: `Bearer ${sessionClaims.__raw}`,
-          'Content-Type': 'application/json',
-        },
+      const { data, error } = await supabase.functions.invoke('analyze-outfit', {
         body: { imageUrl },
       });
-
-      if (functionError && functionError instanceof FunctionsHttpError) {
-        const errorMessage = await functionError.context.json();
-        console.log('Function returned an error', errorMessage);
+      if (error) throw error;
+      if (data?.error) {
+        Alert.alert('Analysis Error', data.message);
+        return;
       }
 
-      console.log('Outfit Analysis Complete:', JSON.stringify(analysisData, null, 2));
-      Alert.alert('Analysis Complete', 'We have received your style review!');
-    } catch (error: any) {
-      console.error(error);
-      if (error?.message) Alert.alert('An Error Occurred', error.message);
+      await saveScan(data, imageUrl);
+      setAnalysisResult(data as OutfitAnalysisResult);
+      setShowResultModal(true);
+      setPhotoUri(null);
+    } catch (e: any) {
+      Alert.alert('Error', e.message);
     } finally {
       setIsLoading(false);
     }
+  }, [photoUri, userId, saveScan]);
+
+  const toggleCameraPosition = () => {
+    setCameraPosition((pos) => (pos === 'back' ? 'front' : 'back'));
   };
+
+  const doubleTap = Gesture.Tap()
+    .maxDuration(250)
+    .numberOfTaps(2)
+    .onStart(() => {
+      runOnJS(toggleCameraPosition)();
+    });
 
   if (!hasPermission) {
     return <Text>Requesting camera permission...</Text>;
   }
-
   if (!device) {
     return <Text>No camera device found.</Text>;
   }
 
   return (
-    <View style={styles.container}>
-      <Camera
-        ref={camera}
-        style={StyleSheet.absoluteFill}
-        device={device}
-        isActive={true}
-        photo={true}
+    <View
+      className="flex-1 overflow-hidden rounded-2xl "
+      style={{ marginBottom: insets.bottom + 60, marginTop: insets.top }}>
+      <GestureDetector gesture={doubleTap}>
+        <Camera
+          ref={camera}
+          device={device}
+          isActive={isFocused && !photoUri}
+          photo
+          style={{ position: 'absolute', top: 0, left: 0, bottom: 0, right: 0 }}
+          torch={flash}
+          enableZoomGesture
+          resizeMode="cover"
+        />
+      </GestureDetector>
+      {photoUri && (
+        <Image
+          source={{ uri: 'file://' + photoUri }}
+          style={{ position: 'absolute', top: 0, left: 0, bottom: 0, right: 0 }}
+          resizeMode="cover"
+        />
+      )}
+
+      <MemoizedHeader
+        onBack={() => router.back()}
+        onToggleFlash={() => setFlash((f) => (f === 'on' ? 'off' : 'on'))}
+        onToggleCamera={toggleCameraPosition}
+        flash={flash}
+        photoUri={photoUri}
+        topInset={insets.top}
       />
-      <View style={styles.buttonContainer}>
+
+      {/* Bottom Controls */}
+      <View
+        className="absolute bottom-0 left-0 right-0 items-center"
+        style={{ marginBottom: insets.bottom > 0 ? insets.bottom + 10 : 30 }}>
         {isLoading ? (
           <ActivityIndicator size="large" color="#FFFFFF" />
+        ) : photoUri ? (
+          <MemoizedPreviewControls onRetake={() => setPhotoUri(null)} onSend={handleSend} />
         ) : (
-          <Button onPress={handleTakePhoto}>
-            <Text>Analyze My Outfit</Text>
-          </Button>
+          <MemoizedCaptureButton onPress={handleTakePhoto} />
         )}
       </View>
+
+      {analysisResult && (
+        <ProfileAnalysisModal
+          open={showResultModal}
+          onClose={() => {
+            setShowResultModal(false);
+            setAnalysisResult(null);
+            router.back();
+          }}
+          result={analysisResult}
+        />
+      )}
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  buttonContainer: {
-    position: 'absolute',
-    bottom: 50,
-    alignSelf: 'center',
-  },
-});

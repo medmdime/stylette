@@ -7,9 +7,9 @@ import { NAV_THEME } from '~/lib/constants';
 import { useColorScheme } from '~/lib/useColorScheme';
 import { ClerkProvider, useAuth } from '@clerk/clerk-expo';
 import { tokenCache } from '@clerk/clerk-expo/token-cache';
-import { SplashScreenController } from '~/controller/splash';
 import { PortalHost } from '@rn-primitives/portal';
 import { ActivityIndicator } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 const LIGHT_THEME: Theme = {
   ...DefaultTheme,
@@ -25,11 +25,13 @@ export default function RootLayout() {
   const { isDarkColorScheme } = useColorScheme();
   return (
     <ClerkProvider tokenCache={tokenCache}>
-      <ThemeProvider value={isDarkColorScheme ? DARK_THEME : LIGHT_THEME}>
-        <StatusBar style={isDarkColorScheme ? 'light' : 'dark'} />
-        <RootNavigator />
-        <PortalHost />
-      </ThemeProvider>
+      <GestureHandlerRootView>
+        <ThemeProvider value={isDarkColorScheme ? DARK_THEME : LIGHT_THEME}>
+          <StatusBar style={isDarkColorScheme ? 'light' : 'dark'} />
+          <RootNavigator />
+          <PortalHost />
+        </ThemeProvider>
+      </GestureHandlerRootView>
     </ClerkProvider>
   );
 }
@@ -50,7 +52,7 @@ function RootNavigator() {
         headerShadowVisible: false,
       }}>
       <Stack.Protected guard={!!isSignedIn}>
-        <Stack.Screen name="(app)" />
+        <Stack.Screen options={{ headerShown: false }} name="(app)" />
       </Stack.Protected>
       <Stack.Protected guard={!isSignedIn}>
         <Stack.Screen name="index" />

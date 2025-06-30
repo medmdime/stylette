@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect } from 'react';
-import { ScrollView, Image } from 'react-native';
+import { ScrollView, Image, Platform } from 'react-native';
 import { Button } from '~/components/ui/button';
 import { Text } from '~/components/ui/text';
 import { H1, P } from '~/components/ui/typography';
@@ -11,9 +11,9 @@ import { ViewGradient } from '~/components/ViewGradient';
 
 export const useWarmUpBrowser = () => {
   useEffect(() => {
-    void WebBrowser.warmUpAsync();
+    if (Platform.OS !== 'web') void WebBrowser.warmUpAsync();
     return () => {
-      void WebBrowser.coolDownAsync();
+      if (Platform.OS !== 'web') void WebBrowser.coolDownAsync();
     };
   }, []);
 };
