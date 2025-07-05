@@ -34,7 +34,7 @@ export default function Auth() {
 
       if (createdSessionId) {
         setActive!({ session: createdSessionId });
-        router.replace('/(app)');
+        router.replace('/(app)/camera');
       }
     } catch (err) {
       console.error(JSON.stringify(err, null, 2));
@@ -53,7 +53,7 @@ export default function Auth() {
 
       if (createdSessionId) {
         setActive!({ session: createdSessionId });
-        router.replace('/(app)');
+        router.replace('/(app)/camera');
       }
     } catch (err) {
       console.error(JSON.stringify(err, null, 2));

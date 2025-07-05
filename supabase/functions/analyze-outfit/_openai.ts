@@ -40,7 +40,7 @@ First, analyze the image to determine if it contains a person wearing a discerni
 
   // The user's immediate request, which can be expanded in the future
   const userPrompt = userQuery ?? "Please analyze the outfit in this image.";
-
+  console.log("we are in the analyze-outfit function calling the OpenAI API");
   const response = await client.chat.completions.create({
     model: Deno.env.get("AZURE_DEPLOYMENT_NAME")!,
     messages: [
@@ -58,6 +58,7 @@ First, analyze the image to determine if it contains a person wearing a discerni
     ],
     response_format: { type: "json_object" },
   });
+  console.log("open ai successfully called");
 
   const analysis = response.choices[0].message?.content;
   if (!analysis) {

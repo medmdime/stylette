@@ -6,12 +6,12 @@ Deno.serve(async (req) => {
     return new Response("ok", { headers: corsHeaders });
   }
   try {
-    const { imageUrl } = await req.json();
+    const { imageUrl, userQuery } = await req.json();
     if (!imageUrl) {
       throw new Error("imageUrl is required in the request body.");
     }
 
-    const analysisResult = await getOutfitAnalysis(imageUrl);
+    const analysisResult = await getOutfitAnalysis(imageUrl, userQuery);
 
     return new Response(JSON.stringify(analysisResult), {
       status: 200,

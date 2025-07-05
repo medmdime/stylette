@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, ScrollView, StyleSheet } from 'react-native';
+import { View, ScrollView } from 'react-native';
 import {
   AlertDialog,
   AlertDialogContent,
@@ -23,8 +23,8 @@ interface ProfileAnalysisModalProps {
 }
 
 const GradeRow = ({ label, score, comment }: { label: string; score: number; comment: string }) => (
-  <View style={styles.gradeRow}>
-    <View style={{ flex: 1 }}>
+  <View className="align-center flex-row justify-between">
+    <View className="flex-1">
       <Text className="font-semibold">{label}</Text>
       <Muted>{comment}</Muted>
     </View>
@@ -46,12 +46,12 @@ export function ProfileAnalysisModal({ open, onClose, result }: ProfileAnalysisM
           </AlertDialogHeader>
 
           <ScrollView style={{ maxHeight: 600 }} showsVerticalScrollIndicator={false}>
-            <View style={styles.scoreContainer}>
-              <View style={styles.scoreBox}>
+            <View className="mt-3 flex-row justify-around">
+              <View className="align-center">
                 <Text className="text-sm text-muted-foreground">Overall Score</Text>
                 <Text className="text-2xl font-bold">{analysis.overall_score.toFixed(1)} / 5</Text>
               </View>
-              <View style={styles.scoreBox}>
+              <View className="align-center">
                 <Text className="text-sm text-muted-foreground">Confidence</Text>
                 <Text className="text-2xl font-bold">
                   {(analysis.confidence_score * 100).toFixed(0)}%
@@ -61,7 +61,7 @@ export function ProfileAnalysisModal({ open, onClose, result }: ProfileAnalysisM
             <Separator className="my-4" />
 
             {/* Grades Section */}
-            <View style={styles.section}>
+            <View className="my-4">
               <H3 className="mb-3">Detailed Grades</H3>
               <Card>
                 <CardContent className="pt-4">
@@ -99,7 +99,7 @@ export function ProfileAnalysisModal({ open, onClose, result }: ProfileAnalysisM
             </View>
 
             {/* Components Feedback Section */}
-            <View style={styles.section}>
+            <View className="my-4">
               <H3 className="mb-3">Feedback by Item</H3>
               {analysis.components_feedback.map((item, index) => (
                 <Card key={index} className="mb-3">
@@ -107,7 +107,7 @@ export function ProfileAnalysisModal({ open, onClose, result }: ProfileAnalysisM
                     <CardTitle className="flex-row items-center">
                       <Text>{item.description}</Text>
                       <Badge variant="secondary" className="ml-2">
-                        {item.item_type}
+                        <Text>{item.item_type}</Text>
                       </Badge>
                     </CardTitle>
                   </CardHeader>
@@ -124,17 +124,16 @@ export function ProfileAnalysisModal({ open, onClose, result }: ProfileAnalysisM
             </View>
 
             {/* Summary and Suggestions */}
-            <View style={styles.section}>
+            <View className="my-4">
               <H3 className="mb-2">Summary</H3>
               {analysis.summary_notes.map((note, i) => (
                 <P key={i} className="mb-2 text-muted-foreground">
-                  {' '}
                   • {note}
                 </P>
               ))}
             </View>
 
-            <View style={styles.section}>
+            <View className="my-4">
               <H3 className="mb-2">Actionable Suggestions</H3>
               {analysis.actionable_suggestions.map((s, i) => (
                 <P key={i} className="mb-2">
@@ -154,22 +153,3 @@ export function ProfileAnalysisModal({ open, onClose, result }: ProfileAnalysisM
     </AlertDialog>
   );
 }
-
-const styles = StyleSheet.create({
-  scoreContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    marginTop: 12,
-  },
-  scoreBox: {
-    alignItems: 'center',
-  },
-  section: {
-    marginVertical: 16,
-  },
-  gradeRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-});

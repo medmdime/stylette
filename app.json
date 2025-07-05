@@ -11,6 +11,15 @@
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
+      [
+        "expo-media-library",
+        {
+          "photosPermission": "Allow $(PRODUCT_NAME) to access your photos to provide better outfit recommendations with our ai.",
+          "savePhotosPermission": "Allow $(PRODUCT_NAME) to save photos so it can use them for outfit recommendations.",
+          "isAccessMediaLocationEnabled": true
+        }
+      ],
+
       "expo-router",
       [
         "expo-dev-launcher",

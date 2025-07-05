@@ -57,3 +57,7 @@ export interface ScannedItem {
     result: OutfitAnalysisResult;
     created_at: string;
 }
+
+export interface DisplayScannedItem extends ScannedItem {
+    display_url?: string; // The temporary URL for rendering
+}

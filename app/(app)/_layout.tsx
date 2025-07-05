@@ -26,9 +26,8 @@ export default function AppLayout() {
             backgroundColor: 'transparent',
           },
         })}>
-        <Tabs.Screen name="index" options={{ title: 'Items' }} />
         <Tabs.Screen name="camera" options={{ title: 'Camera' }} />
-        <Tabs.Screen name="profile" options={{ title: 'Profile' }} />
+        <Tabs.Screen name="(profile)" options={{ title: 'Profile' }} />
       </Tabs>
     </ViewGradient>
   );
