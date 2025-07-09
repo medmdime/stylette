@@ -1,13 +1,13 @@
 import React, { useCallback, useEffect } from 'react';
-import { ScrollView, Image, Platform } from 'react-native';
+import { ScrollView, Image, Platform, View } from 'react-native';
 import { Button } from '~/components/ui/button';
 import { Text } from '~/components/ui/text';
-import { H1, P } from '~/components/ui/typography';
+import { H1, H3, P } from '~/components/ui/typography';
 import { useRouter } from 'expo-router';
 import { useSSO } from '@clerk/clerk-expo';
 import * as AuthSession from 'expo-auth-session';
 import * as WebBrowser from 'expo-web-browser';
-import { ViewGradient } from '~/components/ViewGradient';
+import { useColorScheme } from 'nativewind';
 
 export const useWarmUpBrowser = () => {
   useEffect(() => {
@@ -18,9 +18,13 @@ export const useWarmUpBrowser = () => {
   }, []);
 };
 
+const iconeDark = require('~/assets/backlogo.webp');
+const iconeLight = require('~/assets/lightlogo.webp');
+
 export default function Auth() {
   const router = useRouter();
   useWarmUpBrowser();
+  const theme = useColorScheme();
   const { startSSOFlow } = useSSO();
   const [isLoading, setIsLoading] = React.useState(false);
 
@@ -67,10 +71,17 @@ export default function Auth() {
   };
 
   return (
-    <ViewGradient style={{ flex: 1 }}>
-      <ScrollView contentContainerClassName="mx-3 flex-1 gap-2  mt-40">
-        <H1 className="mb-4  text-center">Hello User, Welcome to Stylette</H1>
-        <P className="mb-2 text-center">Your AI style assistant</P>
+    <View className="flex-1 items-center justify-center p-4">
+      <ScrollView
+        contentContainerClassName="gap-2 w-full max-w-md"
+        showsVerticalScrollIndicator={false}>
+        <Image
+          source={theme.colorScheme === 'light' ? iconeLight : iconeDark}
+          className="h-48 w-full rounded-lg"
+          style={{ resizeMode: 'cover' }}
+        />
+        <H1 className="mb-4  text-center">Hello, Welcome to Stylette</H1>
+        <H3 className="mb-2 text-center">Your AI style assistant</H3>
         <P className="mb-6 text-center">Sign in with us to get started!</P>
 
         <Button disabled={isLoading} onPress={signInWithEmail}>
@@ -86,7 +97,7 @@ export default function Auth() {
             source={require('~/assets/google.webp')}
             style={{ width: 22, height: 22, marginRight: 10 }}
           />
-          <Text className="font-medium text-black">Sign in with Google</Text>
+          <Text className="font-medium text-black">Continue with Google</Text>
         </Button>
 
         <Button
@@ -99,9 +110,9 @@ export default function Auth() {
             tintColor={'white'}
             style={{ width: 45, height: 45, marginRight: 0 }}
           />
-          <Text className="font-medium text-white">Sign in with Apple</Text>
+          <Text className="font-medium text-white">Continue with Apple</Text>
         </Button>
       </ScrollView>
-    </ViewGradient>
+    </View>
   );
 }

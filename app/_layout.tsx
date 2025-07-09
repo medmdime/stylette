@@ -7,9 +7,9 @@ import { NAV_THEME } from '~/lib/constants';
 import { useColorScheme } from '~/lib/useColorScheme';
 import { ClerkProvider, useAuth } from '@clerk/clerk-expo';
 import { tokenCache } from '@clerk/clerk-expo/token-cache';
-import { PortalHost } from '@rn-primitives/portal';
 import { ActivityIndicator } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { PortalProvider } from '@gorhom/portal';
 
 const LIGHT_THEME: Theme = {
   ...DefaultTheme,
@@ -26,11 +26,12 @@ export default function RootLayout() {
   return (
     <ClerkProvider tokenCache={tokenCache}>
       <GestureHandlerRootView>
-        <ThemeProvider value={isDarkColorScheme ? DARK_THEME : LIGHT_THEME}>
-          <StatusBar style={isDarkColorScheme ? 'light' : 'dark'} />
-          <RootNavigator />
-          <PortalHost />
-        </ThemeProvider>
+        <PortalProvider>
+          <ThemeProvider value={isDarkColorScheme ? DARK_THEME : LIGHT_THEME}>
+            <StatusBar style={isDarkColorScheme ? 'light' : 'dark'} />
+            <RootNavigator />
+          </ThemeProvider>
+        </PortalProvider>
       </GestureHandlerRootView>
     </ClerkProvider>
   );
@@ -46,25 +47,36 @@ function RootNavigator() {
   return (
     <Stack
       screenOptions={{
-        title: '',
-        headerTransparent: true,
         headerBackButtonDisplayMode: 'minimal',
         headerShadowVisible: false,
+        headerLargeTitle: false,
+        title: '',
       }}>
+      <Stack.Protected guard={!!isSignedIn}>
+        <Stack.Screen options={{ headerShown: false }} name="loading" />
+      </Stack.Protected>
       <Stack.Protected guard={!!isSignedIn}>
         <Stack.Screen options={{ headerShown: false }} name="(app)" />
       </Stack.Protected>
-      <Stack.Protected guard={!isSignedIn}>
-        <Stack.Screen name="index" />
+
+      <Stack.Protected guard={!!isSignedIn}>
+        <Stack.Screen options={{ headerShown: false }} name="onboarding" />
+      </Stack.Protected>
+
+      <Stack.Protected guard={!!isSignedIn}>
+        <Stack.Screen options={{ headerShown: false }} name="paywall" />
       </Stack.Protected>
       <Stack.Protected guard={!isSignedIn}>
-        <Stack.Screen name="sign-in" />
+        <Stack.Screen name="index" options={{ headerShown: false }} />
       </Stack.Protected>
       <Stack.Protected guard={!isSignedIn}>
-        <Stack.Screen name="sign-up" />
+        <Stack.Screen name="sign-in" options={{ title: 'Sign In' }} />
       </Stack.Protected>
       <Stack.Protected guard={!isSignedIn}>
-        <Stack.Screen name="forget-password" />
+        <Stack.Screen name="sign-up" options={{ title: 'Sign Up for Stylette' }} />
+      </Stack.Protected>
+      <Stack.Protected guard={!isSignedIn}>
+        <Stack.Screen name="forget-password" options={{ title: 'Forgot Password' }} />
       </Stack.Protected>
     </Stack>
   );

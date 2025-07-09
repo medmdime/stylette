@@ -6,7 +6,6 @@ import { H1 } from '~/components/ui/typography';
 import { Text } from '~/components/ui/text';
 import { useRouter } from 'expo-router';
 import { useSignIn } from '@clerk/clerk-expo';
-import { ViewGradient } from '~/components/ViewGradient';
 import { validateEmail } from '~/utils/forms';
 
 export default function ForgetPassword() {
@@ -68,7 +67,7 @@ export default function ForgetPassword() {
       });
       if (signInAttempt.status === 'complete') {
         await setActive({ session: signInAttempt.createdSessionId });
-        router.replace('/(app)');
+        router.replace('/(app)/camera');
       }
     } catch (err) {
       let message = 'An error occurred.';
@@ -82,69 +81,63 @@ export default function ForgetPassword() {
 
   if (successfulCreation) {
     return (
-      <ViewGradient>
-        <ScrollView contentContainerClassName="mx-5 gap-2">
-          <H1>Verify your code</H1>
+      <ScrollView contentContainerClassName="mx-5 gap-2">
+        <H1>Verify your code</H1>
+        <Input
+          value={code}
+          placeholder="Enter your verification code"
+          onChangeText={(code) => setCode(code)}
+        />
+        <View>
           <Input
-            value={code}
-            placeholder="Enter your verification code"
-            onChangeText={(code) => setCode(code)}
+            onChangeText={(text) => {
+              setPassword(text);
+              if (passwordError) setPasswordError('');
+            }}
+            value={password}
+            secureTextEntry={true}
+            placeholder="Password"
+            autoCapitalize={'none'}
           />
-          <View>
-            <Input
-              onChangeText={(text) => {
-                setPassword(text);
-                if (passwordError) setPasswordError('');
-              }}
-              value={password}
-              secureTextEntry={true}
-              placeholder="Password"
-              autoCapitalize={'none'}
-            />
-            {passwordError ? (
-              <Text className="text-destructive text-sm mt-1">{passwordError}</Text>
-            ) : null}
-          </View>
-          <Button onPress={onVerifyPress}>
-            <Text>Verify</Text>
-          </Button>
-        </ScrollView>
-      </ViewGradient>
+          {passwordError ? (
+            <Text className="mt-1 text-sm text-destructive">{passwordError}</Text>
+          ) : null}
+        </View>
+        <Button onPress={onVerifyPress}>
+          <Text>Verify</Text>
+        </Button>
+      </ScrollView>
     );
   }
   return (
-    <ViewGradient>
-      <ScrollView contentContainerClassName="mx-5 gap-2 flex-1">
-        <KeyboardAvoidingView className="gap-2">
-          <H1 className="mb-4 text-center">Change password</H1>
-          <View>
-            <Input
-              onChangeText={(text) => {
-                setEmail(text);
-                if (emailError) setEmailError('');
-              }}
-              value={email}
-              placeholder="email@address.com"
-              autoCapitalize={'none'}
-              inputMode="email"
-            />
-            {emailError ? (
-              <Text className="text-destructive text-sm mt-1">{emailError}</Text>
-            ) : null}
-          </View>
+    <ScrollView contentContainerClassName="mx-5 gap-2 flex-1">
+      <KeyboardAvoidingView className="gap-2">
+        <H1 className="mb-4 text-center">Change password</H1>
+        <View>
+          <Input
+            onChangeText={(text) => {
+              setEmail(text);
+              if (emailError) setEmailError('');
+            }}
+            value={email}
+            placeholder="email@address.com"
+            autoCapitalize={'none'}
+            inputMode="email"
+          />
+          {emailError ? <Text className="mt-1 text-sm text-destructive">{emailError}</Text> : null}
+        </View>
 
-          {formError ? (
-            <View className="mb-2">
-              <Text className="text-destructive text-sm text-center">{formError}</Text>
-            </View>
-          ) : null}
-          <View>
-            <Button disabled={!isLoaded} onPress={signInWithEmail}>
-              <Text>Reset Password</Text>
-            </Button>
+        {formError ? (
+          <View className="mb-2">
+            <Text className="text-center text-sm text-destructive">{formError}</Text>
           </View>
-        </KeyboardAvoidingView>
-      </ScrollView>
-    </ViewGradient>
+        ) : null}
+        <View>
+          <Button disabled={!isLoaded} onPress={signInWithEmail}>
+            <Text>Reset Password</Text>
+          </Button>
+        </View>
+      </KeyboardAvoidingView>
+    </ScrollView>
   );
 }

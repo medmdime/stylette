@@ -6,7 +6,6 @@ import { H1, P } from '~/components/ui/typography';
 import { Text } from '~/components/ui/text';
 import { useRouter } from 'expo-router';
 import { useSignUp } from '@clerk/clerk-expo';
-import { ViewGradient } from '~/components/ViewGradient';
 import { validateEmail } from '~/utils/forms';
 
 export default function SignUp() {
@@ -67,7 +66,7 @@ export default function SignUp() {
 
       if (signUpAttempt.status === 'complete') {
         await setActive({ session: signUpAttempt.createdSessionId });
-        router.replace('/(app)');
+        router.replace('/loading');
       }
     } catch (err) {
       let message = 'An error occurred.';
@@ -81,8 +80,10 @@ export default function SignUp() {
 
   if (pendingVerification) {
     return (
-      <ViewGradient>
-        <ScrollView contentContainerClassName="mx-5 gap-2">
+      <View className="flex-1 items-center justify-center p-4">
+        <ScrollView
+          contentContainerClassName="gap-2 w-full max-w-md"
+          showsVerticalScrollIndicator={false}>
           <H1>Verify your email</H1>
           <Input
             value={code}
@@ -93,14 +94,15 @@ export default function SignUp() {
             <Text>Verify</Text>
           </Button>
         </ScrollView>
-      </ViewGradient>
+      </View>
     );
   }
 
   return (
-    <ViewGradient>
-      <ScrollView contentContainerClassName="mx-5 gap-2">
-        <H1 className="mb-4 text-center">Sign up for Stylette</H1>
+    <View className="flex-1 items-center justify-center p-4">
+      <ScrollView
+        contentContainerClassName="gap-2 w-full max-w-md"
+        showsVerticalScrollIndicator={false}>
         <P className="mb-2 text-center">Create your account to get started</P>
         <View>
           <Input
@@ -113,7 +115,7 @@ export default function SignUp() {
             autoCapitalize={'none'}
             inputMode="email"
           />
-          {emailError ? <Text className="text-destructive text-sm mt-1">{emailError}</Text> : null}
+          {emailError ? <Text className="mt-1 text-sm text-destructive">{emailError}</Text> : null}
         </View>
         <View>
           <Input
@@ -127,12 +129,12 @@ export default function SignUp() {
             autoCapitalize={'none'}
           />
           {passwordError ? (
-            <Text className="text-destructive text-sm mt-1">{passwordError}</Text>
+            <Text className="mt-1 text-sm text-destructive">{passwordError}</Text>
           ) : null}
         </View>
         {formError ? (
           <View className="mb-2">
-            <Text className="text-destructive text-sm text-center">{formError}</Text>
+            <Text className="text-center text-sm text-destructive">{formError}</Text>
           </View>
         ) : null}
         <View>
@@ -141,6 +143,6 @@ export default function SignUp() {
           </Button>
         </View>
       </ScrollView>
-    </ViewGradient>
+    </View>
   );
 }

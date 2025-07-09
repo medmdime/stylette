@@ -1,6 +1,40 @@
 import { AzureOpenAI } from "jsr:@openai/openai";
 
-export async function getOutfitAnalysis(imageUrl: string, userQuery?: string) {
+function getPromptForRequest(promptTitle: string, userQuery?: string): string {
+  switch (promptTitle) {
+    case "Rate my outfit":
+      return "Give me an honest rating of this outfit. What works, what doesn't, and what's the overall score? Be detailed and constructive.";
+    case "Change the vibe":
+      return `How can I change this outfit to fit a '${
+        userQuery || "different"
+      }' vibe? Give me specific suggestions for swaps or additions.`;
+    case "Suit my occasion":
+      return `I'm thinking of wearing this to a '${
+        userQuery || "special occasion"
+      }'. Is it appropriate? What changes, if any, should I make to nail the look?`;
+    case "Complete this look":
+      return "This outfit feels like it's missing something. What items (like accessories, shoes, or a jacket) can I add to complete the look and make it feel more intentional?";
+    case "Does this match?":
+      return "I'm not sure if the items in this outfit go well together. Please analyze the color harmony, style coherence, and overall balance. What's your verdict?";
+    case "Is this dress code appropriate?":
+      return `Is this outfit appropriate for a '${
+        userQuery || "specific"
+      }' dress code? Please explain why or why not, and suggest adjustments if needed.`;
+    case "Suggest improvements":
+      return "Analyze this outfit and give me your top 3 actionable suggestions for how to improve it. Be specific!";
+    case "Make it more flattering":
+      return "How can I adjust this outfit to be more flattering? Focus on improving the fit, proportions, and silhouette with specific, practical advice.";
+    case "Is this spicy? 🌶️":
+      return "Give me your honest opinion: on a scale from 1 to 10, how 'spicy' is this outfit and why? What could I do to turn up the heat in a classy way?";
+    default:
+      return "Please analyze the outfit in this image, providing a balanced and honest style review.";
+  }
+}
+
+export async function getOutfitAnalysis(
+  imageUrl: string,
+  prompt: { title: string; userQuery?: string },
+) {
   const client = new AzureOpenAI({
     endpoint: Deno.env.get("AZURE_OPENAI_ENDPOINT"),
     apiKey: Deno.env.get("AZURE_OPENAI_API_KEY"),
@@ -8,9 +42,8 @@ export async function getOutfitAnalysis(imageUrl: string, userQuery?: string) {
     apiVersion: "2024-12-01-preview",
   });
 
-  // The core instructions and persona are now a 'system' prompt
   const systemPrompt = `
-You are 'Stylette,' a sophisticated, honest, and constructive AI style assistant. Your goal is to provide an insightful, balanced, and professional style review.
+You are 'Stylette,' a sophisticated, witty, honest, and constructive AI style assistant. Your goal is to provide an insightful, balanced, and professional style review in Markdown format.
 
 **Primary Directive:**
 First, analyze the image to determine if it contains a person wearing a discernible outfit.
@@ -25,33 +58,36 @@ First, analyze the image to determine if it contains a person wearing a discerni
 
 - If the image DOES contain an outfit, proceed with the detailed analysis and return it in the specified JSON format below.
 
-**Analysis Guidelines:**
-- Be Objective and Balanced: Do not only give positive feedback. If an element of the outfit is not working well (e.g., poor fit, clashing colors), you must point it out constructively. The user must trust that you are being honest. A mix of praise for good choices and clear advice for improvements is essential.
-- Detailed Component Feedback: Identify each clothing item and accessory you can see. Provide specific feedback on each one.
-- Actionable Suggestions: Your suggestions must be concrete and easy to follow. Instead of saying "add better accessories," say "A thin leather belt would help define the waist," or "Try swapping the sneakers for ankle boots to elevate the look."
+**Analysis & Formatting Guidelines:**
+- **Honesty is Key:** Do not just give positive feedback. If an element is not working, point it out constructively. A mix of praise and clear advice for improvements is essential.
+- **Tone:** Be witty, engaging, and fashion-forward, like a trusted friend who is also a style expert. Use emojis to add personality where appropriate.
+- **Markdown Formatting:** Your entire detailed response must be a single Markdown string. Use headings (#, ##), bold (**text**), italics (*text*), and lists (-) to structure your review and make it easy to read.
+- **Summary:** Provide a short, catchy, one-sentence summary (max 15 words) of the outfit's vibe for display on preview cards.
 
 **JSON Output Structure (for valid outfits only):**
-  { "request_id": "STYLETTE-YYYYMMDD-######", "timestamp": "YYYY-MM-DDTHH:MM:SSZ",
-    "outfit_analysis": 
-    { "overall_verdict": "string", "overall_score": float, "confidence_score": float, "occasion_match": 
-     { "requested_occasion": "string", "predicted_match": "string", "notes": "string" },
-       "grades": { "popularity": {"score": float, "grade_scale": "1-5", "comment": "string"}, "originality": {"score": float, "grade_scale": "1-5", "comment": "string"}, "fit_and_proportion": {"score": float, "grade_scale": "1-5", "comment": "string"}, "color_harmony": {"score": float, "grade_scale": "1-5", "comment": "string"}, "accessorization_effectiveness": {"score": float, "grade_scale": "1-5", "comment": "string"} }, "components_feedback": [ {"item_type": "string", "description": "string", "feedback": {"fit": "string", "color": "string", "notes": "string"}} ], "summary_notes": ["string"], "actionable_suggestions": ["string"] } }
+You MUST return a JSON object with the following structure. Do not add any text outside of this JSON object.
+\`\`\`json
+{
+  "summary": "A short, one-sentence summary of the outfit.",
+  "markdownResponse": "Your full, detailed style analysis formatted as a single Markdown string."
+}
+\`\`\`
 `;
 
-  // The user's immediate request, which can be expanded in the future
-  const userPrompt = userQuery ?? "Please analyze the outfit in this image.";
-  console.log("we are in the analyze-outfit function calling the OpenAI API");
+  const userInstruction = getPromptForRequest(prompt.title, prompt.userQuery);
+  console.log("prompted worked:");
+
   const response = await client.chat.completions.create({
     model: Deno.env.get("AZURE_DEPLOYMENT_NAME")!,
     messages: [
       {
-        "role": "system",
-        "content": systemPrompt,
+        role: "system",
+        content: systemPrompt,
       },
       {
-        "role": "user",
-        "content": [
-          { type: "text", text: userPrompt },
+        role: "user",
+        content: [
+          { type: "text", text: userInstruction },
           { type: "image_url", image_url: { url: imageUrl } },
         ],
       },
@@ -67,11 +103,13 @@ First, analyze the image to determine if it contains a person wearing a discerni
 
   const jsonResponse = JSON.parse(analysis);
 
-  if (!jsonResponse.error) {
-    jsonResponse.request_id = `STYLETTE-${
-      new Date().toISOString().slice(0, 10).replace(/-/g, "")
-    }-${Math.floor(Math.random() * 1000000)}`;
-    jsonResponse.timestamp = new Date().toISOString();
+  // If the response is not an error, inject the original prompt into the response
+  // before returning it. This is more reliable than asking the AI to echo it back.
+  if ("summary" in jsonResponse) {
+    jsonResponse.prompt = {
+      title: prompt.title,
+      userQuery: prompt.userQuery,
+    };
   }
 
   return jsonResponse;

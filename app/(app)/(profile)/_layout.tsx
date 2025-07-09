@@ -1,20 +1,23 @@
 import { Stack } from 'expo-router';
-import { ViewGradient } from '~/components/ViewGradient';
 
 export default function ProfileStackLayout() {
   return (
-    <ViewGradient>
-      <Stack
-        screenOptions={{ headerShown: false, contentStyle: { backgroundColor: 'transparent' } }}>
-        <Stack.Screen name="index" />
-        <Stack.Screen
-          options={{
-            title: 'Settings',
-            presentation: 'modal',
-          }}
-          name="settings-profile"
-        />
-      </Stack>
-    </ViewGradient>
+    <Stack screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="index" />
+      <Stack.Screen
+        options={{
+          title: 'Settings',
+          presentation: 'modal',
+        }}
+        name="settings-profile"
+      />
+      <Stack.Screen
+        options={{
+          title: 'Update Style',
+          presentation: 'modal',
+        }}
+        name="update-style"
+      />
+    </Stack>
   );
 }

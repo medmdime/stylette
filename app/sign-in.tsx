@@ -6,17 +6,17 @@ import { H1, P } from '~/components/ui/typography';
 import { Text } from '~/components/ui/text';
 import { useRouter } from 'expo-router';
 import { useSignIn } from '@clerk/clerk-expo';
-import { ViewGradient } from '~/components/ViewGradient';
 import { validateEmail } from '~/utils/forms';
+import { useHeaderHeight } from '@react-navigation/elements';
 
-export default function SignUp() {
+export default function SignIn() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [emailError, setEmailError] = useState('');
   const [passwordError, setPasswordError] = useState('');
   const [formError, setFormError] = useState('');
   const router = useRouter();
-
+  const headerHeight = useHeaderHeight();
   const { signIn, setActive, isLoaded } = useSignIn();
 
   async function signInWithEmail() {
@@ -44,7 +44,7 @@ export default function SignUp() {
       });
       if (signInAttempt.status === 'complete') {
         await setActive({ session: signInAttempt.createdSessionId });
-        router.replace('/(app)');
+        router.replace('/loading');
       } else {
         setFormError('Sign in failed. Please check your credentials.');
       }
@@ -61,10 +61,11 @@ export default function SignUp() {
   }
 
   return (
-    <ViewGradient>
-      <ScrollView contentContainerClassName="mx-5 gap-2 flex-1">
+    <View className="flex-1 items-center justify-center p-4">
+      <ScrollView
+        contentContainerClassName="gap-2 w-full max-w-md"
+        showsVerticalScrollIndicator={false}>
         <KeyboardAvoidingView className="gap-2">
-          <H1 className="mb-4 text-center">Sign In </H1>
           <P className="mb-2 text-center">Sign in to your account</P>
           <View>
             <Input
@@ -78,7 +79,7 @@ export default function SignUp() {
               inputMode="email"
             />
             {emailError ? (
-              <Text className="text-destructive text-sm mt-1">{emailError}</Text>
+              <Text className="mt-1 text-sm text-destructive">{emailError}</Text>
             ) : null}
           </View>
           <View>
@@ -93,12 +94,12 @@ export default function SignUp() {
               autoCapitalize={'none'}
             />
             {passwordError ? (
-              <Text className="text-destructive text-sm mt-1">{passwordError}</Text>
+              <Text className="mt-1 text-sm text-destructive">{passwordError}</Text>
             ) : null}
           </View>
           {formError ? (
             <View className="mb-2">
-              <Text className="text-destructive text-sm text-center">{formError}</Text>
+              <Text className="text-center text-sm text-destructive">{formError}</Text>
             </View>
           ) : null}
           <View>
@@ -117,6 +118,6 @@ export default function SignUp() {
           </View>
         </KeyboardAvoidingView>
       </ScrollView>
-    </ViewGradient>
+    </View>
   );
 }

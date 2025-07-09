@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   StyleSheet,
+  Platform,
 } from 'react-native';
 import { useState, useCallback } from 'react';
 import { Card, CardContent } from '~/components/ui/card';
@@ -16,6 +17,7 @@ import { useRouter, useFocusEffect } from 'expo-router';
 import type { OutfitAnalysisResult, ScannedItem, DisplayScannedItem } from '~/utils/types';
 import { useClient } from '~/utils/supabase';
 import { useTheme } from '@react-navigation/native';
+
 export default function ProfileScreen() {
   const { user } = useUser();
   const router = useRouter();
@@ -72,11 +74,14 @@ export default function ProfileScreen() {
 
   const renderScannedItem = useCallback(
     ({ item }: { item: DisplayScannedItem }) => {
-      if (!item?.result?.outfit_analysis?.overall_verdict) return null;
+      // Do not render items that resulted in an error from the AI.
+      if ('error' in item.result) {
+        return null;
+      }
 
       return (
-        <TouchableOpacity onPress={() => handleItemPress(item.result)}>
-          <Card className="mr-4 h-56 w-40 bg-card/80">
+        <TouchableOpacity className="m-4" onPress={() => handleItemPress(item.result)}>
+          <Card className="h-56 w-full self-center bg-card/70">
             {item.display_url ? (
               <Image source={{ uri: item.display_url }} className="h-3/5 w-full rounded-t-lg" />
             ) : (
@@ -84,7 +89,7 @@ export default function ProfileScreen() {
             )}
             <CardContent className="flex-1 justify-center p-2">
               <Small className="font-bold" numberOfLines={2}>
-                {item.result.outfit_analysis.overall_verdict}
+                {item.result.summary}
               </Small>
               <Muted className="mt-1 text-xs">
                 {new Date(item.created_at).toLocaleDateString()}
@@ -106,44 +111,45 @@ export default function ProfileScreen() {
   }
 
   return (
-    <View className="flex-1">
-      <View className="absolute right-6 top-16 z-10">
-        <TouchableOpacity onPress={() => router.push('/settings-profile')}>
-          <Settings size={28} color={color} />
-        </TouchableOpacity>
-      </View>
+    <View className="flex-1 items-center">
+      <View className="w-full max-w-5xl">
+        <View className="absolute right-6 top-16 z-10">
+          <TouchableOpacity onPress={() => router.push('/settings-profile')}>
+            <Settings size={28} color={color} />
+          </TouchableOpacity>
+        </View>
 
-      <View className="items-center px-6 pt-24">
-        <Image source={{ uri: user.imageUrl }} className="h-24 w-24 rounded-full" />
-        <H1 className="mt-4">{user.fullName}</H1>
-        <P className="text-muted-foreground">{user.primaryEmailAddress?.emailAddress}</P>
-      </View>
+        <View className="items-center px-6 pt-24">
+          <Image source={{ uri: user.imageUrl }} className="h-24 w-24 rounded-full" />
+          <H1 className="mt-4">{user.fullName}</H1>
+          <P className="text-muted-foreground">{user.primaryEmailAddress?.emailAddress}</P>
+        </View>
 
-      <View className="mt-8">
-        <P className="mb-3 px-6 text-lg font-bold">Your Recent Scans</P>
-        {isLoading ? (
-          <ActivityIndicator className="mt-8" />
-        ) : items.length > 0 ? (
-          <FlatList
-            data={items}
-            keyExtractor={(item) => item.id}
-            renderItem={renderScannedItem}
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={{ paddingLeft: 24, paddingRight: 8 }}
+        <View className="mb-[100px] mt-8 h-full flex-1">
+          <P className="mb-3 px-6 text-lg font-bold">Your Recent Scans</P>
+          {isLoading ? (
+            <ActivityIndicator className="mt-8" />
+          ) : items.length > 0 ? (
+            <FlatList
+              data={items}
+              keyExtractor={(item) => item.id}
+              renderItem={renderScannedItem}
+              showsHorizontalScrollIndicator={false}
+              numColumns={Platform.OS === 'web' ? 4 : 1}
+            />
+          ) : (
+            <P className="px-6 text-muted-foreground">You have no scanned items yet.</P>
+          )}
+        </View>
+
+        {selectedItem && (
+          <ProfileAnalysisModal
+            open={!!selectedItem}
+            onClose={handleCloseModal}
+            result={selectedItem}
           />
-        ) : (
-          <P className="px-6 text-muted-foreground">You have no scanned items yet.</P>
         )}
       </View>
-
-      {selectedItem && (
-        <ProfileAnalysisModal
-          open={!!selectedItem}
-          onClose={handleCloseModal}
-          result={selectedItem}
-        />
-      )}
     </View>
   );
 }

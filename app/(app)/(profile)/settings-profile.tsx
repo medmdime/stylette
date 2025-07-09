@@ -6,9 +6,7 @@ import { H1, P } from '~/components/ui/typography';
 import { Button } from '~/components/ui/button';
 import { Text } from '~/components/ui/text';
 import { Separator } from '~/components/ui/separator';
-
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ViewGradient } from '~/components/ViewGradient';
 
 export default function SettingsScreen() {
   const { signOut } = useAuth();
@@ -44,18 +42,24 @@ export default function SettingsScreen() {
   };
 
   return (
-    <ViewGradient>
-      <View className="flex-1 p-6" style={{ paddingTop: insets.top + 20 }}>
+    <View className="flex-1 items-center p-6" style={{ paddingTop: insets.top + 20 }}>
+      <View className="w-full max-w-md">
         <H1 className="mb-8">Settings</H1>
         <P className="mb-4 text-muted-foreground">Manage your account and app settings.</P>
         <Separator className="my-6" />
         <Button onPress={handleSignOut} className="mb-4">
           <Text>Sign Out</Text>
         </Button>
+        <Button
+          variant="outline"
+          onPress={() => router.push('/(app)/(profile)/update-style')}
+          className="mb-4">
+          <Text>Update Style Preferences</Text>
+        </Button>
         <Button variant="destructive" onPress={handleDeleteAccount}>
           <Text>Delete Account</Text>
         </Button>
       </View>
-    </ViewGradient>
+    </View>
   );
 }
