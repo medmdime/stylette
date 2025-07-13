@@ -94,11 +94,10 @@ export default function SignUp() {
     return (
       <ScrollView contentContainerClassName="gap-2 mx-4 my-2" showsVerticalScrollIndicator={false}>
         <H1>Verify your email</H1>
-
         <OTPInput
           ref={ref}
           onComplete={onVerifyPress}
-          maxLength={667}
+          maxLength={6}
           render={({ slots }) => (
             <View className="my-4 flex-row items-center justify-center gap-2">
               {slots.map((slot, idx) => (
