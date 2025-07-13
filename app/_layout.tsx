@@ -7,9 +7,12 @@ import { NAV_THEME } from '~/lib/constants';
 import { useColorScheme } from '~/lib/useColorScheme';
 import { ClerkProvider, useAuth } from '@clerk/clerk-expo';
 import { tokenCache } from '@clerk/clerk-expo/token-cache';
-import { ActivityIndicator } from 'react-native';
+import { ActivityIndicator, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { PortalProvider } from '@gorhom/portal';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+
+const queryClient = new QueryClient();
 
 const LIGHT_THEME: Theme = {
   ...DefaultTheme,
@@ -25,14 +28,16 @@ export default function RootLayout() {
   const { isDarkColorScheme } = useColorScheme();
   return (
     <ClerkProvider tokenCache={tokenCache}>
-      <GestureHandlerRootView>
-        <PortalProvider>
-          <ThemeProvider value={isDarkColorScheme ? DARK_THEME : LIGHT_THEME}>
-            <StatusBar style={isDarkColorScheme ? 'light' : 'dark'} />
-            <RootNavigator />
-          </ThemeProvider>
-        </PortalProvider>
-      </GestureHandlerRootView>
+      <QueryClientProvider client={queryClient}>
+        <GestureHandlerRootView>
+          <PortalProvider>
+            <ThemeProvider value={isDarkColorScheme ? DARK_THEME : LIGHT_THEME}>
+              <StatusBar style={isDarkColorScheme ? 'light' : 'dark'} />
+              <RootNavigator />
+            </ThemeProvider>
+          </PortalProvider>
+        </GestureHandlerRootView>
+      </QueryClientProvider>
     </ClerkProvider>
   );
 }
@@ -51,6 +56,14 @@ function RootNavigator() {
         headerShadowVisible: false,
         headerLargeTitle: false,
         title: '',
+        headerBackground: () => (
+          <View
+            style={{
+              backgroundColor: 'transparent',
+              flex: 1,
+            }}
+          />
+        ),
       }}>
       <Stack.Protected guard={!!isSignedIn}>
         <Stack.Screen options={{ headerShown: false }} name="loading" />

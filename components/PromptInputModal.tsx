@@ -44,7 +44,6 @@ export const PromptInputModal: FC<PromptInputModalProps> = ({
       bottomSheetRef.current?.close();
     }
   }, [isVisible]);
-  console.log('isVisible:', isVisible);
   const renderBackdrop = useCallback(
     (props: JSX.IntrinsicAttributes & BottomSheetDefaultBackdropProps) => (
       <BottomSheetBackdrop

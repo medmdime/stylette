@@ -31,8 +31,6 @@ Deno.serve(async (req: Request) => {
       .json();
 
     if (!imageUrl) {
-      console.log("Request imageUrl is missing." + JSON.stringify(req.body));
-
       return new Response(
         JSON.stringify({ error: true, message: "`imageUrl` is required." }),
         {
@@ -42,8 +40,6 @@ Deno.serve(async (req: Request) => {
       );
     }
     if (!promptTitle) {
-      console.log("Request promptTitle is missing.");
-      console.log(JSON.stringify(req.body));
       return new Response(
         JSON.stringify({ error: true, message: "`promptTitle` is required." }),
         {

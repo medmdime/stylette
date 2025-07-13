@@ -27,7 +27,9 @@ import { Text } from '~/components/ui/text';
 import { useClient } from '~/utils/supabase';
 import type { OutfitAnalysisResult } from '~/utils/types';
 import { PromptInputModal } from '~/components/PromptInputModal';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 
+// --- (MemoizedHeader and MemoizedCaptureButton components remain the same) ---
 interface HeaderProps {
   onRetake: () => void;
   onToggleFlash: () => void;
@@ -121,12 +123,12 @@ export default function OutfitCameraScreen() {
   const insets = useSafeAreaInsets();
   const isFocused = useIsFocused();
   const supabase = useClient();
+  const queryClient = useQueryClient(); // Get the query client
 
   const [cameraPosition, setCameraPosition] = useState<'back' | 'front'>('back');
   const device = useCameraDevice(cameraPosition);
   const camera = useRef<Camera>(null);
 
-  const [isLoading, setIsLoading] = useState(false);
   const [flash, setFlash] = useState<'on' | 'off'>('off');
   const [photoUri, setPhotoUri] = useState<string | null>(null);
   const [analysisResult, setAnalysisResult] = useState<OutfitAnalysisResult | null>(null);
@@ -135,6 +137,67 @@ export default function OutfitCameraScreen() {
   const [selectedPrompt, setSelectedPrompt] = useState<Prompt | null>(null);
   const [isPromptInputVisible, setIsPromptInputVisible] = useState(false);
   const initialVolume = useRef(0);
+
+  // --- 1. REFACTOR WITH useMutation ---
+  // This hook now manages the entire analysis process, including loading and error states.
+  const analyzeOutfitMutation = useMutation({
+    mutationFn: async ({
+      currentPhotoUri,
+      promptTitle,
+      userQuery,
+    }: {
+      currentPhotoUri: string;
+      promptTitle: string;
+      userQuery?: string;
+    }) => {
+      if (!userId || !user) throw new Error('User not authenticated.');
+
+      // a. Upload image to storage
+      const base64 = await FileSystem.readAsStringAsync(currentPhotoUri, {
+        encoding: FileSystem.EncodingType.Base64,
+      });
+      const filePath = `${userId}/${new Date().toISOString()}.jpg`;
+      const { error: uploadError } = await supabase.storage
+        .from('outfit-images')
+        .upload(filePath, decode(base64), { contentType: 'image/jpeg' });
+      if (uploadError) throw new Error(`Storage Error: ${uploadError.message}`);
+
+      // b. Get signed URL for the function
+      const { data: signedUrlData, error: urlError } = await supabase.storage
+        .from('outfit-images')
+        .createSignedUrl(filePath, 600);
+      if (urlError || !signedUrlData?.signedUrl)
+        throw new Error(`URL Error: ${urlError?.message || 'Could not get image URL.'}`);
+
+      // c. Invoke the analysis function
+      const { data, error: functionError } = await supabase.functions.invoke('analyze-outfit', {
+        body: { imageUrl: signedUrlData.signedUrl, promptTitle, userQuery },
+      });
+      if (functionError) throw new Error(`Function Error: ${functionError.message}`);
+      if (data.error) throw new Error(`Analysis Error: ${data.message}`);
+
+      // d. Save the successful scan to the database
+      const { error: dbError } = await supabase
+        .from('scanned_items')
+        .insert([{ user_id: user.id, result: data, image_url: filePath }]);
+      if (dbError) console.error('DB save error, but analysis was successful:', dbError.message); // Log but don't fail the whole mutation
+
+      return data as OutfitAnalysisResult;
+    },
+    onSuccess: (data) => {
+      // On success, show the result and invalidate the profile screen's query
+      setAnalysisResult(data);
+      setShowResultModal(true);
+      queryClient.invalidateQueries({ queryKey: ['scanned_items', userId] });
+    },
+    onError: (error) => {
+      Alert.alert('Error', error.message);
+    },
+    onSettled: () => {
+      // This runs after success or error, perfect for cleanup
+      setPhotoUri(null);
+    },
+  });
 
   const handleRequestPermission = useCallback(() => {
     requestPermission();
@@ -147,18 +210,16 @@ export default function OutfitCameraScreen() {
   }, [hasPermission, handleRequestPermission]);
 
   const handleTakePhoto = useCallback(async () => {
-    if (isLoading || photoUri || !camera.current) return;
+    if (analyzeOutfitMutation.isPending || photoUri || !camera.current) return;
     try {
-      setIsLoading(true);
       const photo = await camera.current.takePhoto({ flash });
       setPhotoUri(photo.path);
     } catch (e: any) {
       Alert.alert('Error', e.message);
-    } finally {
-      setIsLoading(false);
     }
-  }, [flash, isLoading, photoUri]);
+  }, [flash, analyzeOutfitMutation.isPending, photoUri]);
 
+  // Volume control useEffect remains the same...
   useEffect(() => {
     let volumeListener: EmitterSubscription | undefined;
     const setupVolumeControl = async () => {
@@ -216,76 +277,23 @@ export default function OutfitCameraScreen() {
     Alert.alert('Success', 'Image saved to your photo library!');
   }, [photoUri, mediaPermission, requestMediaPermission]);
 
-  const saveScan = useCallback(
-    async (result: OutfitAnalysisResult, imagePath: string) => {
-      if (!user) return;
-      const { error } = await supabase
-        .from('scanned_items')
-        .insert([{ user_id: user.id, result, image_url: imagePath }]);
-      if (error) {
-        Alert.alert('Database Error', 'Could not save your scan. Please try again.');
-      }
-    },
-    [user, supabase]
-  );
-
-  const handleSend = useCallback(
-    async (promptTitle: string, userQuery?: string) => {
-      if (!photoUri || !userId) return;
-      setIsLoading(true);
-
-      try {
-        const base64 = await FileSystem.readAsStringAsync(photoUri, {
-          encoding: FileSystem.EncodingType.Base64,
-        });
-        const filePath = `${userId}/${new Date().toISOString()}.jpg`;
-        await supabase.storage
-          .from('outfit-images')
-          .upload(filePath, decode(base64), { contentType: 'image/jpeg' });
-        const { data: signedUrlData } = await supabase.storage
-          .from('outfit-images')
-          .createSignedUrl(filePath, 600);
-
-        if (!signedUrlData?.signedUrl) {
-          throw new Error('Could not get image URL for AI.');
-        }
-        console.log('Image uploaded to:', signedUrlData.signedUrl);
-        const { data, error } = await supabase.functions.invoke('analyze-outfit', {
-          body: { imageUrl: signedUrlData.signedUrl, promptTitle, userQuery },
-        });
-
-        if (error) throw error;
-        if (data.error) {
-          Alert.alert('Analysis Error', data.message);
-          setIsLoading(false);
-          return;
-        }
-
-        await saveScan(data, filePath);
-        setAnalysisResult(data as OutfitAnalysisResult);
-        setShowResultModal(true);
-      } catch (e: any) {
-        Alert.alert('Error', e.message);
-      } finally {
-        setIsLoading(false);
-        setPhotoUri(null);
-      }
-    },
-    [photoUri, userId, saveScan, supabase]
-  );
-
   const handlePromptPress = (prompt: Prompt) => {
+    if (!photoUri) return;
     if (prompt.requiresInput) {
       setSelectedPrompt(prompt);
       setIsPromptInputVisible(true);
     } else {
-      handleSend(prompt.title);
+      analyzeOutfitMutation.mutate({ currentPhotoUri: photoUri, promptTitle: prompt.title });
     }
   };
 
   const handleSavePromptInput = (inputValue: string) => {
-    if (selectedPrompt) {
-      handleSend(selectedPrompt.title, inputValue);
+    if (selectedPrompt && photoUri) {
+      analyzeOutfitMutation.mutate({
+        currentPhotoUri: photoUri,
+        promptTitle: selectedPrompt.title,
+        userQuery: inputValue,
+      });
     }
     setIsPromptInputVisible(false);
     setSelectedPrompt(null);
@@ -347,7 +355,8 @@ export default function OutfitCameraScreen() {
       <View
         className="absolute bottom-0 left-0 right-0 items-center"
         style={{ marginBottom: insets.bottom > 0 ? insets.bottom + 10 : 30 }}>
-        {isLoading ? (
+        {/* --- 3. USE isPending FOR LOADING STATE --- */}
+        {analyzeOutfitMutation.isPending ? (
           <ActivityIndicator size="large" color="#FFFFFF" />
         ) : photoUri ? (
           <PromptBubbles onSelectPrompt={handlePromptPress} />

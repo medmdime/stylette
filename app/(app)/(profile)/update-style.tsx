@@ -1,20 +1,15 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { View, ScrollView, Alert, ActivityIndicator } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, ScrollView, Alert, ActivityIndicator, TouchableOpacity } from 'react-native';
 import { H1, P } from '~/components/ui/typography';
 import { Button } from '~/components/ui/button';
 import { Text } from '~/components/ui/text';
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '~/components/ui/select';
-import { Label } from '~/components/ui/label';
+import * as DropdownMenu from 'zeego/dropdown-menu';
 import { useUser } from '@clerk/clerk-expo';
 import { useClient } from '~/utils/supabase';
 import { useRouter } from 'expo-router';
+import { ChevronRight } from 'lucide-react-native';
+import { useTheme } from '@react-navigation/native';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 const questions = [
   {
@@ -90,55 +85,63 @@ export default function UpdateStyleScreen() {
   const { user } = useUser();
   const supabase = useClient();
   const router = useRouter();
+  const queryClient = useQueryClient();
+  const { colors } = useTheme();
+
   const [preferences, setPreferences] = useState<StylePreferences>({});
-  const [isLoading, setIsLoading] = useState(true);
-  const [isSaving, setIsSaving] = useState(false);
 
-  const fetchProfile = useCallback(async () => {
-    if (!user) return;
-    setIsLoading(true);
-    const { data, error } = await supabase
-      .from('profiles')
-      .select(
-        'personal_style, color_palette, go_to_outfit, pattern_preference, essential_accessory, style_goal, getting_ready_time'
-      )
-      .eq('user_id', user.id)
-      .single();
+  const { data: initialPreferences, isLoading: isLoadingPreferences } = useQuery({
+    queryKey: ['style_preferences', user?.id],
+    queryFn: async () => {
+      if (!user) return null;
+      const { data, error } = await supabase
+        .from('profiles')
+        .select(
+          'personal_style, color_palette, go_to_outfit, pattern_preference, essential_accessory, style_goal, getting_ready_time'
+        )
+        .eq('user_id', user.id)
+        .single();
 
-    if (error && error.code !== 'PGRST116') {
-      console.error('Error fetching style preferences:', error);
-      Alert.alert('Error', 'Could not load your style preferences.');
-    } else if (data) {
-      setPreferences(data);
-    }
-    setIsLoading(false);
-  }, [user, supabase]);
+      if (error && error.code !== 'PGRST116') {
+        throw new Error(error.message);
+      }
+      return data;
+    },
+    enabled: !!user,
+  });
 
   useEffect(() => {
-    fetchProfile();
-  }, [fetchProfile]);
+    if (initialPreferences) {
+      setPreferences(initialPreferences);
+    }
+  }, [initialPreferences]);
+
+  const updatePreferencesMutation = useMutation({
+    mutationFn: async (updatedPreferences: StylePreferences) => {
+      if (!user) throw new Error('User not found');
+      const { error } = await supabase
+        .from('profiles')
+        .update(updatedPreferences)
+        .eq('user_id', user.id);
+
+      if (error) throw new Error(error.message);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['style_preferences', user?.id] });
+      Alert.alert('Success!', 'Your style preferences have been updated.', [
+        { text: 'OK', onPress: () => router.back() },
+      ]);
+    },
+    onError: (error) => {
+      Alert.alert('Error', error.message || 'Failed to save your preferences.');
+    },
+  });
 
   const handleUpdatePreference = (key: string, value: string) => {
     setPreferences((prev) => ({ ...prev, [key]: value }));
   };
 
-  const handleSaveChanges = async () => {
-    if (!user) return;
-    setIsSaving(true);
-    const { error } = await supabase.from('profiles').update(preferences).eq('id', user.id);
-
-    if (error) {
-      Alert.alert('Error', 'Failed to save your preferences. Please try again.');
-      console.error('Error updating preferences:', error);
-    } else {
-      Alert.alert('Success!', 'Your style preferences have been updated.', [
-        { text: 'OK', onPress: () => router.back() },
-      ]);
-    }
-    setIsSaving(false);
-  };
-
-  if (isLoading) {
+  if (isLoadingPreferences) {
     return (
       <View className="flex-1 items-center justify-center bg-background">
         <ActivityIndicator />
@@ -147,8 +150,8 @@ export default function UpdateStyleScreen() {
   }
 
   return (
-    <View className="flex-1 items-center bg-background">
-      <ScrollView className="w-full max-w-5xl" contentContainerClassName="p-6 gap-y-6">
+    <View className="flex-1 bg-background">
+      <ScrollView className="w-full" contentContainerClassName="p-4 gap-y-6">
         <View>
           <H1>Update Style</H1>
           <P className="text-muted-foreground">
@@ -156,33 +159,45 @@ export default function UpdateStyleScreen() {
           </P>
         </View>
 
-        {questions.map(({ key, question, answers }) => (
-          <View key={key} className="gap-y-2">
-            <Label nativeID={key}>{question}</Label>
-            <Select
-              value={{
-                value: preferences[key] ?? '',
-                label: preferences[key] ?? 'Select an option',
-              }}
-              onValueChange={(option) => option && handleUpdatePreference(key, option.value)}>
-              <SelectTrigger id={key} className="w-full">
-                <SelectValue placeholder="Select an option" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectGroup>
-                  {answers.map((answer) => (
-                    <SelectItem key={answer} label={answer} value={answer}>
-                      {answer}
-                    </SelectItem>
-                  ))}
-                </SelectGroup>
-              </SelectContent>
-            </Select>
-          </View>
-        ))}
+        <View className="overflow-hidden rounded-lg bg-card">
+          {questions.map(({ key, question, answers }, index) => (
+            <DropdownMenu.Root key={key}>
+              <DropdownMenu.Trigger asChild>
+                <TouchableOpacity
+                  className={`flex-row items-center justify-between p-4 ${
+                    index < questions.length - 1 ? 'border-b border-border' : ''
+                  }`}>
+                  <Text className="w-2/4 ">{question}</Text>
+                  <View className=" w-2/4 flex-row items-center justify-end gap-2">
+                    <Text className="w-2/3  text-muted-foreground/60" numberOfLines={1}>
+                      {preferences[key] ?? 'Select'}
+                    </Text>
+                    <ChevronRight size={16} color={colors.text} />
+                  </View>
+                </TouchableOpacity>
+              </DropdownMenu.Trigger>
+              <DropdownMenu.Content>
+                {answers.map((answer) => (
+                  <DropdownMenu.Item
+                    key={answer}
+                    onSelect={() => handleUpdatePreference(key, answer)}>
+                    <DropdownMenu.ItemTitle>{answer}</DropdownMenu.ItemTitle>
+                  </DropdownMenu.Item>
+                ))}
+              </DropdownMenu.Content>
+            </DropdownMenu.Root>
+          ))}
+        </View>
 
-        <Button onPress={handleSaveChanges} disabled={isSaving} className="mt-4">
-          {isSaving ? <ActivityIndicator color="white" /> : <Text>Save Changes</Text>}
+        <Button
+          onPress={() => updatePreferencesMutation.mutate(preferences)}
+          disabled={updatePreferencesMutation.isPending}
+          className="mt-4">
+          {updatePreferencesMutation.isPending ? (
+            <ActivityIndicator color="white" />
+          ) : (
+            <Text>Save Changes</Text>
+          )}
         </Button>
       </ScrollView>
     </View>

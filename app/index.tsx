@@ -2,7 +2,7 @@ import React, { useCallback, useEffect } from 'react';
 import { ScrollView, Image, Platform, View } from 'react-native';
 import { Button } from '~/components/ui/button';
 import { Text } from '~/components/ui/text';
-import { H1, H3, P } from '~/components/ui/typography';
+import { BlockQuote, H1, H2, H3, P } from '~/components/ui/typography';
 import { useRouter } from 'expo-router';
 import { useSSO } from '@clerk/clerk-expo';
 import * as AuthSession from 'expo-auth-session';
@@ -71,48 +71,44 @@ export default function Auth() {
   };
 
   return (
-    <View className="flex-1 items-center justify-center p-4">
-      <ScrollView
-        contentContainerClassName="gap-2 w-full max-w-md"
-        showsVerticalScrollIndicator={false}>
+    <ScrollView
+      contentContainerClassName="mx-4 flex-1 gap-2 mt-40"
+      showsVerticalScrollIndicator={false}>
+      <Image
+        source={theme.colorScheme === 'light' ? iconeLight : iconeDark}
+        className="h-48 w-full rounded-lg"
+        style={{ resizeMode: 'cover' }}
+      />
+      <H3 className="mb-0 text-center">Hello, Welcome to </H3>
+      <H1 className="mb-2 text-center italic"> Stylette</H1>
+      <H3 className="mb-0 text-center">Your AI style assistant </H3>
+      <P className="mb-6 text-center">Sign in with us to get started!</P>
+      <Button disabled={isLoading} onPress={signInWithEmail}>
+        <Text>Sign in with email</Text>
+      </Button>
+      <Button
+        onPress={onPress}
+        disabled={isLoading}
+        className="flex-row items-center justify-center border border-gray-200 bg-white"
+        style={{ minHeight: 48 }}>
         <Image
-          source={theme.colorScheme === 'light' ? iconeLight : iconeDark}
-          className="h-48 w-full rounded-lg"
-          style={{ resizeMode: 'cover' }}
+          source={require('~/assets/google.webp')}
+          style={{ width: 22, height: 22, marginRight: 10 }}
         />
-        <H1 className="mb-4  text-center">Hello, Welcome to Stylette</H1>
-        <H3 className="mb-2 text-center">Your AI style assistant</H3>
-        <P className="mb-6 text-center">Sign in with us to get started!</P>
-
-        <Button disabled={isLoading} onPress={signInWithEmail}>
-          <Text>Sign in with email</Text>
-        </Button>
-
-        <Button
-          onPress={onPress}
-          disabled={isLoading}
-          className="flex-row items-center justify-center border border-gray-200 bg-white"
-          style={{ minHeight: 48 }}>
-          <Image
-            source={require('~/assets/google.webp')}
-            style={{ width: 22, height: 22, marginRight: 10 }}
-          />
-          <Text className="font-medium text-black">Continue with Google</Text>
-        </Button>
-
-        <Button
-          onPress={onPressApple}
-          disabled={isLoading}
-          className="flex-row items-center justify-center bg-black"
-          style={{ minHeight: 48 }}>
-          <Image
-            source={require('~/assets/apple.png')}
-            tintColor={'white'}
-            style={{ width: 45, height: 45, marginRight: 0 }}
-          />
-          <Text className="font-medium text-white">Continue with Apple</Text>
-        </Button>
-      </ScrollView>
-    </View>
+        <Text className="font-medium text-black">Continue with Google</Text>
+      </Button>
+      <Button
+        onPress={onPressApple}
+        disabled={isLoading}
+        className="flex-row items-center justify-center bg-black"
+        style={{ minHeight: 48 }}>
+        <Image
+          source={require('~/assets/apple.png')}
+          tintColor={'white'}
+          style={{ width: 45, height: 45, marginRight: 0 }}
+        />
+        <Text className="font-medium text-white">Continue with Apple</Text>
+      </Button>
+    </ScrollView>
   );
 }

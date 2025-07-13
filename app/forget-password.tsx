@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { Alert, KeyboardAvoidingView, ScrollView, View } from 'react-native';
 import { Button } from '~/components/ui/button';
 import { Input } from '~/components/ui/input';
@@ -7,6 +7,8 @@ import { Text } from '~/components/ui/text';
 import { useRouter } from 'expo-router';
 import { useSignIn } from '@clerk/clerk-expo';
 import { validateEmail } from '~/utils/forms';
+import { OTPInput, OTPInputRef } from 'input-otp-native';
+import { Slot } from '~/components/ui/Slot';
 
 export default function ForgetPassword() {
   const [email, setEmail] = useState('');
@@ -15,6 +17,7 @@ export default function ForgetPassword() {
   const [passwordError, setPasswordError] = useState('');
   const [formError, setFormError] = useState('');
   const [code, setCode] = useState('');
+  const ref = useRef<OTPInputRef>(null);
 
   const [successfulCreation, setSuccessfulCreation] = useState(false);
   const router = useRouter();
@@ -81,12 +84,20 @@ export default function ForgetPassword() {
 
   if (successfulCreation) {
     return (
-      <ScrollView contentContainerClassName="mx-5 gap-2">
+      <ScrollView contentContainerClassName="gap-2 mx-4 my-2" showsVerticalScrollIndicator={false}>
         <H1>Verify your code</H1>
-        <Input
-          value={code}
-          placeholder="Enter your verification code"
-          onChangeText={(code) => setCode(code)}
+
+        <OTPInput
+          ref={ref}
+          onComplete={(code) => setCode(code)}
+          maxLength={6}
+          render={({ slots }) => (
+            <View className="my-4 flex-row items-center justify-center gap-2">
+              {slots.map((slot, idx) => (
+                <Slot key={idx} {...slot} />
+              ))}
+            </View>
+          )}
         />
         <View>
           <Input
@@ -110,7 +121,7 @@ export default function ForgetPassword() {
     );
   }
   return (
-    <ScrollView contentContainerClassName="mx-5 gap-2 flex-1">
+    <ScrollView contentContainerClassName="gap-2 mx-4 my-2" showsVerticalScrollIndicator={false}>
       <KeyboardAvoidingView className="gap-2">
         <H1 className="mb-4 text-center">Change password</H1>
         <View>
