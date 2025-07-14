@@ -11,6 +11,7 @@ import { ActivityIndicator, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { PortalProvider } from '@gorhom/portal';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { Header } from '~/components/Header';
 
 const queryClient = new QueryClient();
 
@@ -56,12 +57,12 @@ function RootNavigator() {
         headerShadowVisible: false,
         headerLargeTitle: false,
         title: '',
-        headerBackground: () => (
-          <View
-            style={{
-              backgroundColor: 'transparent',
-              flex: 1,
-            }}
+
+        header: ({ navigation, route }) => (
+          <Header
+            goBack={navigation.canGoBack() ? navigation.goBack : undefined}
+            title={''}
+            canGoBack={navigation.canGoBack()}
           />
         ),
       }}>

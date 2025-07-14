@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Alert, KeyboardAvoidingView, ScrollView, View } from 'react-native';
+import { useState } from 'react';
+import { Alert, KeyboardAvoidingView, ScrollView, TouchableOpacity, View } from 'react-native';
 import { Button } from '~/components/ui/button';
 import { Input } from '~/components/ui/input';
 import { P } from '~/components/ui/typography';
@@ -7,6 +7,8 @@ import { Text } from '~/components/ui/text';
 import { useRouter } from 'expo-router';
 import { useSignIn } from '@clerk/clerk-expo';
 import { validateEmail } from '~/utils/forms';
+import { EyeOff, Eye } from 'lucide-react-native';
+import { useTheme } from '@react-navigation/native';
 
 export default function SignIn() {
   const [email, setEmail] = useState('');
@@ -15,6 +17,8 @@ export default function SignIn() {
   const [passwordError, setPasswordError] = useState('');
   const [formError, setFormError] = useState('');
   const router = useRouter();
+  const [showPassword, setShowPassword] = useState(false);
+  const theme = useTheme();
   const { signIn, setActive, isLoaded } = useSignIn();
 
   async function signInWithEmail() {
@@ -82,10 +86,19 @@ export default function SignIn() {
               if (passwordError) setPasswordError('');
             }}
             value={password}
-            secureTextEntry={true}
+            secureTextEntry={!showPassword}
             placeholder="Password"
             autoCapitalize={'none'}
           />
+          <TouchableOpacity
+            className="absolute right-4 top-3"
+            onPress={() => setShowPassword(!showPassword)}>
+            {showPassword ? (
+              <EyeOff size={20} color={theme.colors.text} />
+            ) : (
+              <Eye size={20} color={theme.colors.text} />
+            )}
+          </TouchableOpacity>
           {passwordError ? (
             <Text className="mt-1 text-sm text-destructive">{passwordError}</Text>
           ) : null}

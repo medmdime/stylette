@@ -1,11 +1,11 @@
 import { useAuth, useUser } from '@clerk/clerk-expo';
-import { useIsFocused, useTheme } from '@react-navigation/native';
+import { useIsFocused } from '@react-navigation/native';
 import * as FileSystem from 'expo-file-system';
 import * as ImagePicker from 'expo-image-picker';
 import * as MediaLibrary from 'expo-media-library';
 import { decode } from 'base64-arraybuffer';
 import { Download, ImageUp, RefreshCw, X, Zap } from 'lucide-react-native';
-import React, { FC, memo, useCallback, useEffect, useRef, useState } from 'react';
+import { FC, memo, useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -29,7 +29,6 @@ import type { OutfitAnalysisResult } from '~/utils/types';
 import { PromptInputModal } from '~/components/PromptInputModal';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
-// --- (MemoizedHeader and MemoizedCaptureButton components remain the same) ---
 interface HeaderProps {
   onRetake: () => void;
   onToggleFlash: () => void;
@@ -61,14 +60,13 @@ interface PromptInputModalProps {
 
 const MemoizedHeader: FC<HeaderProps> = memo(
   ({ onRetake, onToggleFlash, onToggleCamera, flash, photoUri, onDownloadImage }) => {
-    const { colors } = useTheme();
     return (
       <View className="absolute left-0 right-0 top-0 z-10 flex-row items-center justify-between px-6 pt-5">
         {photoUri ? (
           <TouchableOpacity
             onPress={photoUri ? onRetake : () => {}}
             className="rounded-full bg-black/50 p-2">
-            <X size={28} color={colors.background} style={{ opacity: photoUri ? 1 : 0 }} />
+            <X size={28} color={'#FFFFFF'} style={{ opacity: photoUri ? 1 : 0 }} />
           </TouchableOpacity>
         ) : (
           <View className="w-8" />
@@ -76,19 +74,19 @@ const MemoizedHeader: FC<HeaderProps> = memo(
         <View className="flex-row items-center gap-4">
           {photoUri ? (
             <TouchableOpacity onPress={onDownloadImage} className="rounded-full bg-black/50 p-2">
-              <Download size={28} color={colors.background} />
+              <Download size={28} color={'#FFFFFF'} />
             </TouchableOpacity>
           ) : (
             <>
               <TouchableOpacity onPress={onToggleFlash} className="rounded-full bg-black/50 p-2">
                 <Zap
                   size={28}
-                  color={flash === 'on' ? '#facc15' : colors.background}
+                  color={flash === 'on' ? '#facc15' : '#FFFFFF'}
                   fill={flash === 'on' ? '#facc15' : 'none'}
                 />
               </TouchableOpacity>
               <TouchableOpacity onPress={onToggleCamera} className="rounded-full bg-black/50 p-2">
-                <RefreshCw size={28} color={colors.background} />
+                <RefreshCw size={28} color={'#FFFFFF'} />
               </TouchableOpacity>
             </>
           )}
@@ -99,7 +97,6 @@ const MemoizedHeader: FC<HeaderProps> = memo(
 );
 
 const MemoizedCaptureButton: FC<CaptureButtonProps> = memo(({ onPress, onUploadImage }) => {
-  const { colors } = useTheme();
   return (
     <View className="w-full flex-row items-center justify-center gap-x-12">
       <View className="h-16 w-16" />
@@ -110,7 +107,7 @@ const MemoizedCaptureButton: FC<CaptureButtonProps> = memo(({ onPress, onUploadI
       <TouchableOpacity
         onPress={onUploadImage}
         className="h-16 w-16 items-center justify-center rounded-full bg-black/50">
-        <ImageUp size={28} color={colors.background} />
+        <ImageUp size={28} color={'#FFFFFF'} />
       </TouchableOpacity>
     </View>
   );
@@ -138,8 +135,6 @@ export default function OutfitCameraScreen() {
   const [isPromptInputVisible, setIsPromptInputVisible] = useState(false);
   const initialVolume = useRef(0);
 
-  // --- 1. REFACTOR WITH useMutation ---
-  // This hook now manages the entire analysis process, including loading and error states.
   const analyzeOutfitMutation = useMutation({
     mutationFn: async ({
       currentPhotoUri,
@@ -266,13 +261,6 @@ export default function OutfitCameraScreen() {
 
   const handleDownloadImage = useCallback(async () => {
     if (!photoUri) return;
-
-    const currentPermission = mediaPermission ?? (await requestMediaPermission());
-    if (currentPermission.status !== 'granted') {
-      Alert.alert('Permission needed', 'Stylette needs permission to save photos.');
-      return;
-    }
-
     await MediaLibrary.saveToLibraryAsync(photoUri);
     Alert.alert('Success', 'Image saved to your photo library!');
   }, [photoUri, mediaPermission, requestMediaPermission]);

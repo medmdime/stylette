@@ -1,4 +1,3 @@
-import React from 'react';
 import { View, Image, Alert } from 'react-native';
 import { H1, H3, P } from '~/components/ui/typography';
 import { Button } from '~/components/ui/button';
@@ -18,13 +17,11 @@ export default function PaywallScreen() {
   const insets = useSafeAreaInsets();
 
   const handleSubscribe = (plan: string) => {
-    // In a real app, you would integrate with RevenueCat here.
     Alert.alert('Subscribed!', `You have subscribed to the ${plan} plan.`);
     router.replace('/(app)/camera');
   };
 
   const handleRestorePurchases = () => {
-    // In a real app, you would restore purchases with RevenueCat here.
     Alert.alert('Purchases Restored', 'Your previous purchases have been restored.');
     router.replace('/(app)/camera');
   };

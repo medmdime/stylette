@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { View, Image } from 'react-native';
-import { H1, P } from '~/components/ui/typography';
+import { H1 } from '~/components/ui/typography';
 import { Button } from '~/components/ui/button';
 import { Text } from '~/components/ui/text';
 import { Progress } from '~/components/ui/progress';
