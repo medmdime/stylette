@@ -1,4 +1,4 @@
-import { useAuth, useSession, useUser } from "@clerk/clerk-expo";
+import { useSession } from "@clerk/clerk-expo";
 import { createClient } from "@supabase/supabase-js";
 import { useEffect } from "react";
 

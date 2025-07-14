@@ -229,7 +229,7 @@ export function ProfileAnalysisModal({ open, onClose, result }: ProfileAnalysisM
                 <H2 className="border-b-0 pb-0 text-center text-2xl">{result.prompt.title}</H2>
                 {result.prompt.userQuery && (
                   <Muted className="text-center italic text-foreground">
-                    For: "{result.prompt.userQuery}"
+                    {` For: "${result.prompt.userQuery}"`}
                   </Muted>
                 )}
               </View>

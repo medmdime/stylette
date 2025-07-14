@@ -67,9 +67,7 @@ export default function ProfileScreen() {
   });
 
   const deleteItemMutation = useMutation({
-    // FIX 1: The mutation now only accepts the itemId, which is all it needs.
     mutationFn: async ({ itemId }: { itemId: string }) => {
-      // FIX 2: The query now correctly matches the item's 'id'.
       const { error: dbError } = await supabase.from('scanned_items').delete().eq('id', itemId);
       if (dbError) throw new Error(dbError.message);
     },
@@ -82,7 +80,6 @@ export default function ProfileScreen() {
     },
   });
 
-  // FIX 3: This function now only passes the itemId to the mutation.
   const handleDeleteItem = (itemId: string) => {
     Alert.alert(
       'Delete Item',

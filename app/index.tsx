@@ -1,8 +1,8 @@
-import React, { useCallback, useEffect } from 'react';
-import { ScrollView, Image, Platform, View } from 'react-native';
+import { useCallback, useEffect, useState } from 'react';
+import { ScrollView, Image, Platform } from 'react-native';
 import { Button } from '~/components/ui/button';
 import { Text } from '~/components/ui/text';
-import { BlockQuote, H1, H2, H3, P } from '~/components/ui/typography';
+import { H1, H3, P } from '~/components/ui/typography';
 import { useRouter } from 'expo-router';
 import { useSSO } from '@clerk/clerk-expo';
 import * as AuthSession from 'expo-auth-session';
@@ -26,7 +26,7 @@ export default function Auth() {
   useWarmUpBrowser();
   const theme = useColorScheme();
   const { startSSOFlow } = useSSO();
-  const [isLoading, setIsLoading] = React.useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const onPress = useCallback(async () => {
     try {
