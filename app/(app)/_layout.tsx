@@ -4,7 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 export default function AppLayout() {
   return (
     <Tabs
-      screenOptions={({ route }) => ({
+      screenOptions={() => ({
         headerShown: false,
         tabBarStyle: {
           borderTopWidth: 0,

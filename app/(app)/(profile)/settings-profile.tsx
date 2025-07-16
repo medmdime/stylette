@@ -1,4 +1,3 @@
-import React from 'react';
 import { View, Alert } from 'react-native';
 import { useAuth, useUser } from '@clerk/clerk-expo';
 import { useRouter } from 'expo-router';

@@ -5,7 +5,7 @@ import { Text } from '~/components/ui/text';
 import { H1, H3, P } from '~/components/ui/typography';
 import { useRouter } from 'expo-router';
 import { useSSO } from '@clerk/clerk-expo';
-import * as AuthSession from 'expo-auth-session';
+
 import * as WebBrowser from 'expo-web-browser';
 import { useColorScheme } from 'nativewind';
 
@@ -33,7 +33,8 @@ export default function Auth() {
       setIsLoading(true);
       const { createdSessionId, setActive } = await startSSOFlow({
         strategy: 'oauth_google',
-        redirectUrl: AuthSession.makeRedirectUri(),
+        redirectUrl: 'stylette://sso-callback',
+
       });
 
       if (createdSessionId) {
@@ -52,7 +53,7 @@ export default function Auth() {
       setIsLoading(true);
       const { createdSessionId, setActive } = await startSSOFlow({
         strategy: 'oauth_apple',
-        redirectUrl: AuthSession.makeRedirectUri(),
+        redirectUrl: 'stylette://sso-callback',
       });
 
       if (createdSessionId) {

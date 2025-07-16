@@ -7,11 +7,12 @@ import { NAV_THEME } from '~/lib/constants';
 import { useColorScheme } from '~/lib/useColorScheme';
 import { ClerkProvider, useAuth } from '@clerk/clerk-expo';
 import { tokenCache } from '@clerk/clerk-expo/token-cache';
-import { ActivityIndicator, View } from 'react-native';
+import { ActivityIndicator } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { PortalProvider } from '@gorhom/portal';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Header } from '~/components/Header';
+import { useEffect } from 'react';
 
 const queryClient = new QueryClient();
 
@@ -26,9 +27,13 @@ const DARK_THEME: Theme = {
 export { ErrorBoundary } from 'expo-router';
 
 export default function RootLayout() {
+  
   const { isDarkColorScheme } = useColorScheme();
+  
   return (
-    <ClerkProvider tokenCache={tokenCache}>
+    <ClerkProvider
+      tokenCache={tokenCache}
+      publishableKey={process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY}>
       <QueryClientProvider client={queryClient}>
         <GestureHandlerRootView>
           <PortalProvider>
@@ -58,7 +63,7 @@ function RootNavigator() {
         headerLargeTitle: false,
         title: '',
 
-        header: ({ navigation, route }) => (
+        header: ({ navigation }) => (
           <Header
             goBack={navigation.canGoBack() ? navigation.goBack : undefined}
             title={''}

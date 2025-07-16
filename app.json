@@ -51,9 +51,12 @@
     },
     "assetBundlePatterns": ["**/*"],
     "ios": {
+      "usesAppleSignIn": true,
       "supportsTablet": true,
       "bundleIdentifier": "com.stylette.info",
-      "com.apple.developer.applesignin": ["Default"],
+      "entitlements": {
+        "com.apple.developer.applesignin": ["Default"]
+      },
       "infoPlist": {
         "NSCameraUsageDescription": "$(PRODUCT_NAME) needs access to your Camera to take pictures of your outfit so it can use that image to give you an outfit review.",
         "ITSAppUsesNonExemptEncryption": false
