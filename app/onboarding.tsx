@@ -5,7 +5,7 @@ import { Button } from '~/components/ui/button';
 import { Text } from '~/components/ui/text';
 import { Progress } from '~/components/ui/progress';
 import { useRouter } from 'expo-router';
-import { useUser } from '@clerk/clerk-expo';
+import { useAuth, useUser } from '@clerk/clerk-expo';
 import { useClient } from '~/utils/supabase';
 import { useColorScheme } from '~/lib/useColorScheme';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -86,6 +86,7 @@ export default function OnboardingScreen() {
   const [answers, setAnswers] = useState<Record<number, string>>({});
   const router = useRouter();
   const { user } = useUser();
+  const { signOut } = useAuth();
   const supabase = useClient();
   const { colorScheme } = useColorScheme();
   const insets = useSafeAreaInsets();
@@ -97,6 +98,10 @@ export default function OnboardingScreen() {
     } else {
       finishOnboarding();
     }
+  };
+
+  const exitOnboarding = () => {
+    signOut();
   };
 
   const finishOnboarding = async () => {
@@ -120,7 +125,7 @@ export default function OnboardingScreen() {
   const currentQuestion = questions[currentQuestionIndex];
 
   return (
-    <View className="flex-1 bg-background p-6" style={{ paddingTop: insets.top }}>
+    <View className="flex-1 bg-background p-2" style={{ paddingTop: insets.top }}>
       <View className="mb-8 flex flex-row items-center">
         <Image
           source={colorScheme === 'light' ? iconeLight : iconeDark}
@@ -140,6 +145,9 @@ export default function OnboardingScreen() {
           ))}
         </View>
       </View>
+      <Button variant="outline" className="mt-48" onPress={exitOnboarding}>
+        <Text>Exit</Text>
+      </Button>
     </View>
   );
 }

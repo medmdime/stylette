@@ -29,6 +29,7 @@ import type { OutfitAnalysisResult } from '~/utils/types';
 import { PromptInputModal } from '~/components/PromptInputModal';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { FunctionsHttpError } from '@supabase/supabase-js';
+import { compressImage } from '~/utils/image';
 
 interface HeaderProps {
   onRetake: () => void;
@@ -50,13 +51,6 @@ interface Prompt {
   requiresInput?: boolean;
   placeholder?: string;
   spicy?: boolean;
-}
-
-interface PromptInputModalProps {
-  isVisible: boolean;
-  onClose: () => void;
-  onSave: (inputValue: string) => void;
-  prompt: Prompt | null;
 }
 
 const MemoizedHeader: FC<HeaderProps> = memo(
@@ -131,7 +125,7 @@ export default function OutfitCameraScreen() {
   const [photoUri, setPhotoUri] = useState<string | null>(null);
   const [analysisResult, setAnalysisResult] = useState<OutfitAnalysisResult | null>(null);
   const [showResultModal, setShowResultModal] = useState(false);
-   const [selectedPrompt, setSelectedPrompt] = useState<Prompt | null>(null);
+  const [selectedPrompt, setSelectedPrompt] = useState<Prompt | null>(null);
   const [isPromptInputVisible, setIsPromptInputVisible] = useState(false);
   const initialVolume = useRef(0);
 
@@ -169,7 +163,7 @@ export default function OutfitCameraScreen() {
         body: { imageUrl: signedUrlData.signedUrl, promptTitle, userQuery },
       });
       if (err && err instanceof FunctionsHttpError) {
-        const errorMessage = await err.context.json()
+        const errorMessage = await err.context.json();
         throw new Error(`Analysis Error: ${errorMessage.message || 'Unknown error occurred.'}`);
       }
       // if (data.error)
@@ -191,7 +185,6 @@ export default function OutfitCameraScreen() {
       Alert.alert('Error', error.message);
     },
     onSettled: () => {
-
       setPhotoUri(null);
     },
   });
@@ -250,10 +243,10 @@ export default function OutfitCameraScreen() {
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsEditing: true,
-        quality: 0.8,
       });
       if (!result.canceled) {
-        setPhotoUri(result.assets[0].uri);
+        const compressedUri = await compressImage(result.assets[0].uri); // Compress the image
+        setPhotoUri(compressedUri);
       }
     } catch (e: unknown) {
       const errorMessage = e instanceof Error ? e.message : String(e);

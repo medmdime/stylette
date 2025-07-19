@@ -75,14 +75,21 @@ function RootNavigator() {
       <Stack.Protected guard={!!isSignedIn}>
         <Stack.Screen options={{ headerShown: false }} name="(app)" />
       </Stack.Protected>
-
       <Stack.Protected guard={!!isSignedIn}>
         <Stack.Screen options={{ headerShown: false }} name="onboarding" />
       </Stack.Protected>
-
       <Stack.Protected guard={!!isSignedIn}>
         <Stack.Screen options={{ headerShown: false }} name="paywall" />
       </Stack.Protected>
+
+      <Stack.Protected guard={!!isSignedIn}>
+        <Stack.Screen options={{ headerShown: false }} name="blog-detail" />
+      </Stack.Protected>
+
+      <Stack.Protected guard={!!isSignedIn}>
+        <Stack.Screen options={{ headerShown: true }} name="settings-profile" />
+      </Stack.Protected>
+
       <Stack.Protected guard={!isSignedIn}>
         <Stack.Screen name="index" options={{ headerShown: false }} />
       </Stack.Protected>

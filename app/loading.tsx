@@ -21,7 +21,7 @@ export default function LoadingScreen() {
     const checkSubscriptionAndOnboarding = async () => {
       try {
         Purchases.configure({
-          apiKey: 'appl_daEMbmtxqfEBHmoBIJGCuaUOtcd',  
+          apiKey: 'appl_daEMbmtxqfEBHmoBIJGCuaUOtcd',
           appUserID: user.id,
         });
 
@@ -32,15 +32,15 @@ export default function LoadingScreen() {
         const customerInfo = await Purchases.getCustomerInfo();
         const isPro = customerInfo.entitlements.active['pro'] !== undefined;
 
-      
-
         const { data, error } = await supabase
           .from('profiles')
           .select('onboarding_completed')
           .eq('user_id', user.id)
           .single();
 
-        if (error && error.code !== 'PGRST116') {
+        console.log('Customer Info:', data, 'error:', error);
+
+        if (error && error.code === 'PGRST116') {
           router.replace('/onboarding');
           return;
         }
@@ -50,7 +50,7 @@ export default function LoadingScreen() {
           return;
         }
 
-        if ( data?.onboarding_completed) {
+        if (data?.onboarding_completed) {
           router.replace('/(app)/camera');
         } else {
           router.replace('/onboarding');

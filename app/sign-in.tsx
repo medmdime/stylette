@@ -1,5 +1,12 @@
 import { useState } from 'react';
-import { Alert, KeyboardAvoidingView, ScrollView, TouchableOpacity, View } from 'react-native';
+import {
+  Alert,
+  KeyboardAvoidingView,
+  Linking,
+  ScrollView,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import { Button } from '~/components/ui/button';
 import { Input } from '~/components/ui/input';
 import { P } from '~/components/ui/typography';
@@ -108,6 +115,21 @@ export default function SignIn() {
             <Text className="text-center text-sm text-destructive">{formError}</Text>
           </View>
         ) : null}
+        <P nativeID="legal-label" className="text-center text-sm">
+          By signing in, you agree to the
+          <Text
+            className="font-bold text-primary"
+            onPress={() => Linking.openURL('https://stylette.info/terms-and-conditions')}>
+            Terms of Service
+          </Text>{' '}
+          and{' '}
+          <Text
+            className="font-bold text-primary"
+            onPress={() => Linking.openURL('https://stylette.info/privacy')}>
+            Privacy Policy
+          </Text>
+          .
+        </P>
         <View>
           <Button disabled={!isLoaded} onPress={signInWithEmail}>
             <Text>Sign In</Text>

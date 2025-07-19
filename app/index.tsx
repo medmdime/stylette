@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { ScrollView, Image, Platform } from 'react-native';
+import { ScrollView, Image, Platform, Linking } from 'react-native';
 import { Button } from '~/components/ui/button';
 import { Text } from '~/components/ui/text';
 import { H1, H3, P } from '~/components/ui/typography';
@@ -109,6 +109,21 @@ export default function Auth() {
         />
         <Text className="font-medium text-white">Continue with Apple</Text>
       </Button>
+      <P nativeID="legal-label" className="text-center text-sm">
+        By signing in, you agree to the
+        <Text
+          className="font-bold text-primary"
+          onPress={() => Linking.openURL('https://stylette.info/terms-and-conditions')}>
+          Terms of Service
+        </Text>{' '}
+        and{' '}
+        <Text
+          className="font-bold text-primary"
+          onPress={() => Linking.openURL('https://stylette.info/privacy')}>
+          Privacy Policy
+        </Text>
+        .
+      </P>
     </ScrollView>
   );
 }

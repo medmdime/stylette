@@ -14,7 +14,7 @@ import { useState, useCallback } from 'react';
 import { Card, CardContent } from '~/components/ui/card';
 import { H1, P, Muted, Small } from '~/components/ui/typography';
 import { ProfileAnalysisModal } from '~/components/ProfileAnalysisModal';
-import { Settings, X } from 'lucide-react-native';
+import { Settings, UserPen, X } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
 import type { OutfitAnalysisResult, ScannedItem, DisplayScannedItem } from '~/utils/types';
 import { useClient } from '~/utils/supabase';
@@ -110,11 +110,11 @@ export default function ProfileScreen() {
       if ('error' in item.result) return null;
 
       return (
-        <View className="m-4 flex-1 ">
+        <View className="m-4 flex-1">
           <Card className="h-56 w-full self-center bg-card/70">
             <TouchableOpacity
               className="absolute right-2 top-2 z-10 rounded-full bg-black/50 p-1.5"
-              onPress={() => handleDeleteItem(item.id)}  
+              onPress={() => handleDeleteItem(item.id)}
               disabled={deleteItemMutation.isPending}>
               {deleteItemMutation.isPending && deleteItemMutation.variables?.itemId === item.id ? (
                 <ActivityIndicator size="small" color="white" />
@@ -159,6 +159,11 @@ export default function ProfileScreen() {
       <View className="absolute right-6 top-16 z-10">
         <TouchableOpacity onPress={() => router.push('/settings-profile')}>
           <Settings size={28} color={colors.text} />
+        </TouchableOpacity>
+      </View>
+      <View className="absolute left-6 top-16 z-10">
+        <TouchableOpacity onPress={() => router.push('/update-style')}>
+          <UserPen size={28} color={colors.text} />
         </TouchableOpacity>
       </View>
 
