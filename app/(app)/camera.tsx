@@ -28,6 +28,7 @@ import { useClient } from '~/utils/supabase';
 import type { OutfitAnalysisResult } from '~/utils/types';
 import { PromptInputModal } from '~/components/PromptInputModal';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { FunctionsHttpError } from '@supabase/supabase-js';
 
 interface HeaderProps {
   onRetake: () => void;
@@ -130,8 +131,7 @@ export default function OutfitCameraScreen() {
   const [photoUri, setPhotoUri] = useState<string | null>(null);
   const [analysisResult, setAnalysisResult] = useState<OutfitAnalysisResult | null>(null);
   const [showResultModal, setShowResultModal] = useState(false);
-  const [mediaPermission, requestMediaPermission] = MediaLibrary.usePermissions();
-  const [selectedPrompt, setSelectedPrompt] = useState<Prompt | null>(null);
+   const [selectedPrompt, setSelectedPrompt] = useState<Prompt | null>(null);
   const [isPromptInputVisible, setIsPromptInputVisible] = useState(false);
   const initialVolume = useRef(0);
 
@@ -165,11 +165,14 @@ export default function OutfitCameraScreen() {
         throw new Error(`URL Error: ${urlError?.message || 'Could not get image URL.'}`);
 
       // c. Invoke the analysis function
-      const { data, error: functionError } = await supabase.functions.invoke('analyze-outfit', {
+      const { data, error: err } = await supabase.functions.invoke('analyze-outfit', {
         body: { imageUrl: signedUrlData.signedUrl, promptTitle, userQuery },
       });
-      if (functionError) throw new Error(`Function Error: ${functionError.message}`);
-      if (data.error) throw new Error(`Analysis Error: ${data.message}`);
+      if (err && err instanceof FunctionsHttpError) {
+        const errorMessage = await err.context.json()
+        throw new Error(`Analysis Error: ${errorMessage.message || 'Unknown error occurred.'}`);
+      }
+      // if (data.error)
 
       // d. Save the successful scan to the database
       const { error: dbError } = await supabase
@@ -180,7 +183,6 @@ export default function OutfitCameraScreen() {
       return data as OutfitAnalysisResult;
     },
     onSuccess: (data) => {
-      // On success, show the result and invalidate the profile screen's query
       setAnalysisResult(data);
       setShowResultModal(true);
       queryClient.invalidateQueries({ queryKey: ['scanned_items', userId] });
@@ -189,7 +191,7 @@ export default function OutfitCameraScreen() {
       Alert.alert('Error', error.message);
     },
     onSettled: () => {
-      // This runs after success or error, perfect for cleanup
+
       setPhotoUri(null);
     },
   });
@@ -263,7 +265,7 @@ export default function OutfitCameraScreen() {
     if (!photoUri) return;
     await MediaLibrary.saveToLibraryAsync(photoUri);
     Alert.alert('Success', 'Image saved to your photo library!');
-  }, [photoUri, mediaPermission, requestMediaPermission]);
+  }, [photoUri]);
 
   const handlePromptPress = (prompt: Prompt) => {
     if (!photoUri) return;

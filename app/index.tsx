@@ -34,7 +34,6 @@ export default function Auth() {
       const { createdSessionId, setActive } = await startSSOFlow({
         strategy: 'oauth_google',
         redirectUrl: 'stylette://sso-callback',
-
       });
 
       if (createdSessionId) {
@@ -46,7 +45,7 @@ export default function Auth() {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [router, startSSOFlow]);
 
   const onPressApple = useCallback(async () => {
     try {
@@ -65,7 +64,7 @@ export default function Auth() {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [router, startSSOFlow]);
 
   const signInWithEmail = () => {
     router.push('./sign-in');
@@ -78,7 +77,7 @@ export default function Auth() {
       <Image
         source={theme.colorScheme === 'light' ? iconeLight : iconeDark}
         className="h-48 w-full rounded-lg"
-        style={{ resizeMode: 'cover' }}
+        style={{ resizeMode: 'contain' }}
       />
       <H3 className="mb-0 text-center">Hello, Welcome to </H3>
       <H1 className="mb-2 text-center italic"> Stylette</H1>

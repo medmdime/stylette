@@ -114,7 +114,7 @@ export default function ProfileScreen() {
           <Card className="h-56 w-full self-center bg-card/70">
             <TouchableOpacity
               className="absolute right-2 top-2 z-10 rounded-full bg-black/50 p-1.5"
-              onPress={() => handleDeleteItem(item.id)} // Pass only the item's ID
+              onPress={() => handleDeleteItem(item.id)}  
               disabled={deleteItemMutation.isPending}>
               {deleteItemMutation.isPending && deleteItemMutation.variables?.itemId === item.id ? (
                 <ActivityIndicator size="small" color="white" />

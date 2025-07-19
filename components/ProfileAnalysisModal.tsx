@@ -165,18 +165,19 @@ interface ProfileAnalysisModalProps {
   onClose: () => void;
   result: OutfitAnalysisResult;
 }
-export function ProfileAnalysisModal({ open, onClose, result }: ProfileAnalysisModalProps) {
+export function ProfileAnalysisModal({
+  open,
+  onClose,
+  result,
+}: Readonly<ProfileAnalysisModalProps>) {
   const bottomSheetRef = useRef<BottomSheet>(null);
   const { height } = useWindowDimensions();
   const snapPoints = useMemo(() => [height * 0.5, height * 0.85], [height]);
   const colors = useTheme().colors;
   useEffect(() => {
-    if (open) {
-      bottomSheetRef.current?.expand();
-    } else {
-      bottomSheetRef.current?.close();
-    }
+    open ? bottomSheetRef.current?.expand() : bottomSheetRef.current?.close();
   }, [open]);
+
   const isSuccess = (res: OutfitAnalysisResult): res is SuccessfulAnalysis => {
     return 'markdownResponse' in res && !(res as any).error;
   };
@@ -202,7 +203,7 @@ export function ProfileAnalysisModal({ open, onClose, result }: ProfileAnalysisM
         </Button>
       </View>
     ),
-    [onClose]
+    [onClose, colors.text]
   );
 
   return (

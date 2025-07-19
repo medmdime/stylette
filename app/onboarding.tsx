@@ -128,7 +128,6 @@ export default function OnboardingScreen() {
           resizeMode="contain"
         />
         <Progress value={progress} max={7} className="w-[75%]" />
-        {/* <P className="mt-2 text-muted-foreground">Style Discovery</P> */}
       </View>
 
       <View className="justify-center">

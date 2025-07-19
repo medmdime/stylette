@@ -12,7 +12,6 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { PortalProvider } from '@gorhom/portal';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Header } from '~/components/Header';
-import { useEffect } from 'react';
 
 const queryClient = new QueryClient();
 
@@ -27,9 +26,8 @@ const DARK_THEME: Theme = {
 export { ErrorBoundary } from 'expo-router';
 
 export default function RootLayout() {
-  
   const { isDarkColorScheme } = useColorScheme();
-  
+
   return (
     <ClerkProvider
       tokenCache={tokenCache}

@@ -10,13 +10,10 @@ export interface AnalysisError {
 }
 
 export interface SuccessfulAnalysis {
-  // The main response from the AI in Markdown format.
   markdownResponse: string;
-  // The prompt that generated this analysis.
   prompt: {
-    title: string; // e.g., "Rate my outfit"
-    userQuery?: string; // e.g., "A wedding in the summer"
+    title: string;
+    userQuery?: string;
   };
-  // A short, one-sentence summary for display on cards.
   summary: string;
 }
