@@ -158,7 +158,6 @@ export default function OutfitCameraScreen() {
       if (urlError || !signedUrlData?.signedUrl)
         throw new Error(`URL Error: ${urlError?.message || 'Could not get image URL.'}`);
 
-      // c. Invoke the analysis function
       const { data, error: err } = await supabase.functions.invoke('analyze-outfit', {
         body: { imageUrl: signedUrlData.signedUrl, promptTitle, userQuery },
       });
@@ -209,7 +208,6 @@ export default function OutfitCameraScreen() {
     }
   }, [flash, analyzeOutfitMutation.isPending, photoUri]);
 
-  // Volume control useEffect remains the same...
   useEffect(() => {
     let volumeListener: EmitterSubscription | undefined;
     const setupVolumeControl = async () => {

@@ -39,7 +39,7 @@ export async function getOutfitAnalysis(
     endpoint: Deno.env.get("AZURE_OPENAI_ENDPOINT"),
     apiKey: Deno.env.get("AZURE_OPENAI_API_KEY"),
     deployment: Deno.env.get("AZURE_DEPLOYMENT_NAME"),
-    apiVersion: "2024-12-01-preview",
+    apiVersion: "2025-01-01-preview",
   });
 
   const systemPrompt = `
@@ -75,7 +75,6 @@ You MUST return a JSON object with the following structure. Do not add any text 
 `;
 
   const userInstruction = getPromptForRequest(prompt.title, prompt.userQuery);
-  console.log("prompted worked:");
 
   const response = await client.chat.completions.create({
     model: Deno.env.get("AZURE_DEPLOYMENT_NAME")!,

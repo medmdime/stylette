@@ -1,17 +1,16 @@
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, View } from 'react-native';
+import { ActivityIndicator, Platform, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Purchases, { CustomerInfo, PurchasesStoreTransaction } from 'react-native-purchases';
 import RevenueCatUI from 'react-native-purchases-ui';
-import { useAuth, useUser } from '@clerk/clerk-expo';
+import { useUser } from '@clerk/clerk-expo';
 import { H1 } from '~/components/ui/typography';
 
 export default function PaywallScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { user } = useUser();
-  const { signOut } = useAuth();
   const [rcConfigured, setRcConfigured] = useState(false);
 
   useEffect(() => {
@@ -19,7 +18,11 @@ export default function PaywallScreen() {
       try {
         if (user?.id) {
           Purchases.configure({
-            apiKey: 'appl_daEMbmtxqfEBHmoBIJGCuaUOtcd',
+            apiKey: Platform.select({
+              ios: 'appl_daEMbmtxqfEBHmoBIJGCuaUOtcd',
+              android: 'goog_zQmTuXJRbHZvzftvPCdjwrcviaL',
+              web: 'rcb_JaxJpQObShHvSaWyfwkCALMbdknZ',
+            })!,
             appUserID: user.id,
           });
 
@@ -43,12 +46,10 @@ export default function PaywallScreen() {
     customerInfo: CustomerInfo;
     storeTransaction: PurchasesStoreTransaction;
   }) => {
-    console.log('Purchase completed:', customerInfo, storeTransaction);
     router.replace('/(app)/camera');
   };
 
   const onRestoreCompleted = ({ customerInfo }: { customerInfo: CustomerInfo }) => {
-    console.log('Restore completed:', customerInfo);
     router.replace('/(app)/camera');
   };
 
@@ -65,12 +66,12 @@ export default function PaywallScreen() {
     <View style={{ flex: 1, paddingTop: insets.top }}>
       <RevenueCatUI.Paywall
         options={{
-          displayCloseButton: true,
+          displayCloseButton: false,
         }}
         onPurchaseCompleted={onPurchaseCompleted}
         onRestoreCompleted={onRestoreCompleted}
-        onDismiss={() => {
-          signOut();
+        onPurchaseCancelled={() => {
+          console.log('Purchase cancelled');
         }}
       />
     </View>

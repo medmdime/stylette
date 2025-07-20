@@ -57,6 +57,7 @@ export default function BlogDetailScreen() {
       <Stack.Screen options={{ title: blog.title, headerBackTitle: 'Back', headerShown: false }} />
       <ScrollView
         className="flex-1 bg-background"
+        showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: insets.bottom + 20 }}>
         <View>
           <ScrollView

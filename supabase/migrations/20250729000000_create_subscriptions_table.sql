@@ -1,7 +1,7 @@
 create table subscriptions (
   id uuid primary key default uuid_generate_v4(),
   user_id text not null unique,
-  status text, 
+  status text,
   period_end_date timestamp with time zone,
   plan_id text,
   created_at timestamp with time zone default timezone('utc'::text, now()) not null,

@@ -24,6 +24,3 @@ to authenticated
 with check (
 ((select auth.jwt()->>'sub') = (user_id)::text)
 );
- 
-
-
