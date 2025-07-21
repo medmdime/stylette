@@ -70,7 +70,7 @@ function RootNavigator() {
         ),
       }}>
       <Stack.Protected guard={!!isSignedIn}>
-        <Stack.Screen options={{ headerShown: false }} name="loading" />
+        <Stack.Screen options={{ headerShown: false }} name="sso-callback" />
       </Stack.Protected>
       <Stack.Protected guard={!!isSignedIn}>
         <Stack.Screen options={{ headerShown: false }} name="(app)" />

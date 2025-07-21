@@ -77,7 +77,7 @@ export default function HomeScreen() {
           </View>
         </View>
       </View>
-      <View className="px-4 " style={{ paddingBottom: 90 }}>
+      <View className="px-4 " style={{ paddingBottom: 0 }}>
         <LegendList
           data={blogs || []}
           keyExtractor={(item) => item.id}

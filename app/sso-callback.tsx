@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { View, ActivityIndicator, StyleSheet } from 'react-native';
+import { View, ActivityIndicator, StyleSheet, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useUser } from '@clerk/clerk-expo';
 import { useClient } from '~/utils/supabase';
@@ -20,10 +20,22 @@ export default function LoadingScreen() {
 
     const checkSubscriptionAndOnboarding = async () => {
       try {
-        Purchases.configure({
-          apiKey: 'appl_daEMbmtxqfEBHmoBIJGCuaUOtcd',
-          appUserID: user.id,
-        });
+        if (Platform.OS === 'ios') {
+          Purchases.configure({
+            apiKey: 'appl_daEMbmtxqfEBHmoBIJGCuaUOtcd',
+            appUserID: user.id,
+          });
+        } else if (Platform.OS === 'android') {
+          Purchases.configure({
+            apiKey: 'goog_zQmTuXJRbHZvzftvPCdjwrcviaL',
+            appUserID: user.id,
+          });
+        } else if (Platform.OS === 'web') {
+          Purchases.configure({
+            apiKey: 'rcb_JaxJpQObShHvSaWyfwkCALMbdknZ',
+            appUserID: user.id,
+          });
+        }
 
         if (user.primaryEmailAddress) {
           await Purchases.setEmail(user.primaryEmailAddress.emailAddress);
@@ -38,13 +50,10 @@ export default function LoadingScreen() {
           .eq('user_id', user.id)
           .single();
 
-        console.log('Customer Info:', data, 'error:', error);
-
         if (error && error.code === 'PGRST116') {
           router.replace('/onboarding');
           return;
         }
-
         if (!isPro) {
           router.replace('/paywall');
           return;

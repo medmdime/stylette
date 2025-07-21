@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { View, ScrollView, Image, Dimensions } from 'react-native';
+import { View, Image, Dimensions } from 'react-native';
 import { Card, CardContent } from '~/components/ui/card';
 import { H3, Muted } from '~/components/ui/typography';
 import { Text } from '~/components/ui/text';
 import { useRouter } from 'expo-router';
-import { Pressable } from 'react-native-gesture-handler';
+import { Pressable, ScrollView } from 'react-native-gesture-handler';
 
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = width - 8; // Corresponds to p-6 on each side of the screen

@@ -115,7 +115,7 @@ export default function OutfitCameraScreen() {
   const insets = useSafeAreaInsets();
   const isFocused = useIsFocused();
   const supabase = useClient();
-  const queryClient = useQueryClient(); // Get the query client
+  const queryClient = useQueryClient();
 
   const [cameraPosition, setCameraPosition] = useState<'back' | 'front'>('back');
   const device = useCameraDevice(cameraPosition);
@@ -167,7 +167,6 @@ export default function OutfitCameraScreen() {
       }
       // if (data.error)
 
-      // d. Save the successful scan to the database
       const { error: dbError } = await supabase
         .from('scanned_items')
         .insert([{ user_id: user.id, result: data, image_url: filePath }]);
@@ -202,7 +201,7 @@ export default function OutfitCameraScreen() {
     if (analyzeOutfitMutation.isPending || photoUri || !camera.current) return;
     try {
       const photo = await camera.current.takePhoto({ flash });
-      setPhotoUri(photo.path);
+      setPhotoUri(await compressImage(photo.path));
     } catch (e: any) {
       Alert.alert('Error', e.message);
     }
@@ -239,8 +238,9 @@ export default function OutfitCameraScreen() {
   const handleUploadImage = useCallback(async () => {
     try {
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        mediaTypes: ['images'],
         allowsEditing: true,
+        aspect: [4, 3],
       });
       if (!result.canceled) {
         const compressedUri = await compressImage(result.assets[0].uri); // Compress the image
@@ -306,7 +306,7 @@ export default function OutfitCameraScreen() {
   return (
     <View
       className="flex-1 overflow-hidden rounded-2xl"
-      style={{ marginBottom: insets.bottom + 60, marginTop: insets.top }}>
+      style={{ marginBottom: 0, marginTop: insets.top }}>
       <GestureDetector gesture={doubleTap}>
         <Camera
           ref={camera}

@@ -173,7 +173,7 @@ export default function ProfileScreen() {
         <P className="text-muted-foreground">{user.primaryEmailAddress?.emailAddress}</P>
       </View>
 
-      <View className="mb-[100px] mt-8 h-full w-full flex-1">
+      <View className="mt-8 h-full w-full flex-1">
         <P className="mb-3 px-6 text-lg font-bold">Your Recent Scans</P>
         {isLoading ? (
           <ActivityIndicator className="mt-8" />

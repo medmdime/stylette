@@ -8,7 +8,7 @@ export const compressImage = async (uri: string): Promise<string> => {
                 { resize: { width: 720 } },
             ],
             {
-                compress: 0.5,
+                compress: 0.6,
                 format: ImageManipulator.SaveFormat.JPEG,
             },
         );

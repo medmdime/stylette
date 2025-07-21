@@ -85,7 +85,7 @@ export default function SignUp() {
       });
       if (signUpAttempt.status === 'complete') {
         await setActive({ session: signUpAttempt.createdSessionId });
-        router.replace('/loading');
+        router.replace('/sso-callback');
       }
     } catch (err) {
       let message = 'An error occurred during verification.';

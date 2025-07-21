@@ -17,15 +17,22 @@ export default function PaywallScreen() {
     const configureRevenueCat = async () => {
       try {
         if (user?.id) {
-          Purchases.configure({
-            apiKey: Platform.select({
-              ios: 'appl_daEMbmtxqfEBHmoBIJGCuaUOtcd',
-              android: 'goog_zQmTuXJRbHZvzftvPCdjwrcviaL',
-              web: 'rcb_JaxJpQObShHvSaWyfwkCALMbdknZ',
-            })!,
-            appUserID: user.id,
-          });
-
+          if (Platform.OS === 'ios') {
+            Purchases.configure({
+              apiKey: 'appl_daEMbmtxqfEBHmoBIJGCuaUOtcd',
+              appUserID: user.id,
+            });
+          } else if (Platform.OS === 'android') {
+            Purchases.configure({
+              apiKey: 'goog_zQmTuXJRbHZvzftvPCdjwrcviaL',
+              appUserID: user.id,
+            });
+          } else if (Platform.OS === 'web') {
+            Purchases.configure({
+              apiKey: 'rcb_JaxJpQObShHvSaWyfwkCALMbdknZ',
+              appUserID: user.id,
+            });
+          }
           if (user.primaryEmailAddress) {
             await Purchases.setEmail(user.primaryEmailAddress.emailAddress);
           }
@@ -50,7 +57,9 @@ export default function PaywallScreen() {
   };
 
   const onRestoreCompleted = ({ customerInfo }: { customerInfo: CustomerInfo }) => {
-    router.replace('/(app)/camera');
+    if (customerInfo.entitlements.active['pro']) {
+      router.replace('/(app)/camera');
+    }
   };
 
   if (!rcConfigured) {

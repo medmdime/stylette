@@ -53,7 +53,7 @@ export default function SignIn() {
       });
       if (signInAttempt.status === 'complete') {
         await setActive({ session: signInAttempt.createdSessionId });
-        router.replace('/loading');
+        router.replace('/sso-callback');
       } else {
         setFormError('Sign in failed. Please check your credentials.');
       }
