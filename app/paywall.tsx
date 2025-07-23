@@ -1,17 +1,19 @@
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, Platform, View } from 'react-native';
+import { ActivityIndicator, Platform, Touchable, TouchableOpacity, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Purchases, { CustomerInfo, PurchasesStoreTransaction } from 'react-native-purchases';
 import RevenueCatUI from 'react-native-purchases-ui';
-import { useUser } from '@clerk/clerk-expo';
+import { useAuth, useUser } from '@clerk/clerk-expo';
 import { H1 } from '~/components/ui/typography';
+import { X } from 'lucide-react-native';
 
 export default function PaywallScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { user } = useUser();
   const [rcConfigured, setRcConfigured] = useState(false);
+  const { signOut } = useAuth();
 
   useEffect(() => {
     const configureRevenueCat = async () => {
@@ -72,7 +74,15 @@ export default function PaywallScreen() {
   }
 
   return (
-    <View style={{ flex: 1, paddingTop: insets.top }}>
+    <View style={{ flex: 1, paddingTop: insets.top / 2 }}>
+      <TouchableOpacity
+        onPress={() => {
+          signOut();
+        }}
+        className="circle absolute right-3 top-10 z-10 items-center justify-center rounded-full"
+        style={{ backgroundColor: 'black', padding: 10 }}>
+        <X color="white" />
+      </TouchableOpacity>
       <RevenueCatUI.Paywall
         options={{
           displayCloseButton: false,
